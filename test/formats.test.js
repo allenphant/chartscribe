@@ -1,7 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mdToPlain } from '../js/formats.js';
-import { mdToLatex } from '../js/formats.js';
+import { mdToPlain, mdToLatex } from '../js/formats.js';
 
 test('mdToPlain strips heading markers', () => {
   assert.equal(mdToPlain('# 標題\n內文'), '標題\n內文');
@@ -38,6 +37,7 @@ test('mdToLatex wraps bullets in itemize', () => {
   );
 });
 
-test('mdToLatex escapes percent and other specials', () => {
+test('mdToLatex escapes percent, underscore, and braces', () => {
   assert.equal(mdToLatex('敏感性 97% 與 co_trimoxazole'), '敏感性 97\\% 與 co\\_trimoxazole');
+  assert.equal(mdToLatex('範圍 {a}'), '範圍 \\{a\\}');
 });

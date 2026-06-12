@@ -15,7 +15,7 @@ export function mdToPlain(md) {
 // "co-trimoxazole" underscores). Runs before emphasis markers are turned
 // into commands, so the backslashes/braces we add are not re-escaped.
 function escapeLatex(s) {
-  return s.replace(/([%&#_$])/g, '\\$1');
+  return s.replace(/([%&#_${}])/g, '\\$1');
 }
 
 function inlineLatex(s) {
@@ -39,6 +39,7 @@ export function mdToLatex(md) {
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       const level = h[1].length;
+      // H1→section, H2→subsection, H3 and deeper→subsubsection.
       const cmd = level === 1 ? 'section' : level === 2 ? 'subsection' : 'subsubsection';
       out.push(`\\${cmd}{${inlineLatex(h[2])}}`);
       continue;

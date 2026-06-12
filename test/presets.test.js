@@ -9,9 +9,10 @@ test('PRESETS contains the five expected keys', () => {
   );
 });
 
-test('general preset omits objective rules', () => {
+test('general preset omits objective rules but keeps language rules', () => {
   const p = buildSystemPrompt('general', '', '');
   assert.ok(!p.includes('客觀守則'));
+  assert.ok(p.includes('保留英文'));
 });
 
 test('amr preset includes objective rules and language rules', () => {

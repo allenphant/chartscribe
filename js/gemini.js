@@ -6,27 +6,35 @@ export class GeminiError extends Error {
   }
 }
 
-// Pure: shape the generateContent request payload.
+// Pure: shape the generateContent request payload. The prompt goes in the
+// dedicated systemInstruction field so the model treats it as system-level
+// guidance, separate from the user turn that carries the image.
 export function buildRequestBody(systemPrompt, base64Data, mimeType) {
   return {
+    systemInstruction: { parts: [{ text: systemPrompt }] },
     contents: [{
       role: 'user',
       parts: [
-        { text: systemPrompt },
         { inlineData: { mimeType, data: base64Data } },
       ],
     }],
   };
 }
 
-// Thin fetch wrapper. Throws GeminiError on HTTP error or empty response.
+// Thin fetch wrapper. Throws GeminiError on network failure (status -1),
+// HTTP error (status = HTTP code), or empty response (status 0).
 export async function generateDescription({ apiKey, model, systemPrompt, base64Data, mimeType }) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(buildRequestBody(systemPrompt, base64Data, mimeType)),
-  });
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildRequestBody(systemPrompt, base64Data, mimeType)),
+    });
+  } catch (err) {
+    throw new GeminiError(-1, `網路錯誤：${err.message}`);
+  }
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
     throw new GeminiError(res.status, detail || `HTTP ${res.status}`);
