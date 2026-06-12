@@ -1,0 +1,10 @@
+# 來源年報 PDF（大型二進位，不入庫）
+*.pdf
+
+# 作業系統
+.DS_Store
+Thumbs.db
+
+# 編輯器
+.vscode/
+.idea/
