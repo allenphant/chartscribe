@@ -28,7 +28,7 @@ export function createCardElement(card, handlers) {
   row.className = 'row';
   const copyBtn = button('複製', () => handlers.onCopy(card.id));
   const dlBtn = button('下載', () => handlers.onDownload(card.id));
-  const regenBtn = button('重生', () => handlers.onRegen(card.id));
+  const regenBtn = button('重新生成', () => handlers.onRegen(card.id));
   row.append(copyBtn, dlBtn, regenBtn);
   el.appendChild(row);
 
@@ -45,7 +45,7 @@ function button(label, onClick) {
 }
 
 const STATUS_TEXT = {
-  queued: '待處理', processing: '產生中…', done: '完成', error: '錯誤',
+  queued: '待處理', processing: '產生中…（約 5–10 秒）', done: '完成', error: '錯誤',
 };
 
 export function setCardStatus(cardEl, status, errorMessage) {
