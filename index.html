@@ -13,13 +13,24 @@
   </header>
 
   <section id="settings-panel" class="panel hidden">
-    <label>Gemini API key
-      <input id="api-key" type="password" placeholder="貼上你的 API key（存於瀏覽器本機）">
+    <label>目前使用的 API key
+      <select id="active-key"></select>
     </label>
+    <button id="delete-key" type="button">刪除此 key</button>
+    <fieldset class="add-key">
+      <legend>新增 API key</legend>
+      <label>名稱
+        <input id="new-key-name" type="text" placeholder="例如：個人帳號">
+      </label>
+      <label>API key
+        <input id="new-key-value" type="password" placeholder="貼上 API key">
+      </label>
+      <button id="add-key" type="button">新增</button>
+    </fieldset>
     <label>模型
       <input id="model" type="text" placeholder="gemini-2.5-flash">
     </label>
-    <button id="settings-save" type="button">儲存</button>
+    <button id="settings-save" type="button">儲存模型設定</button>
     <p class="hint">API key 僅存於此瀏覽器的 localStorage，不會上傳到任何伺服器（除了直接呼叫 Google）。</p>
   </section>
 

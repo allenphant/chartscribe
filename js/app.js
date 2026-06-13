@@ -1,6 +1,7 @@
 import {
   loadSettings, saveSettings,
   loadPromptOverrides, savePromptOverride, clearPromptOverride,
+  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKey,
 } from './storage.js';
 import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
 import { generateDescription, GeminiError } from './gemini.js';
@@ -9,12 +10,25 @@ import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 
 const state = {
   ...loadSettings(),
+  apiKey: getActiveKey(),
   stylePreset: 'general',
   promptOverrides: loadPromptOverrides(),
   sharedInstructions: '',
   outputFormat: 'markdown',
   cards: [],
 };
+
+// Rebuild the active-key dropdown from storage and select the active entry.
+function refreshKeyDropdown() {
+  const sel = document.getElementById('active-key');
+  sel.innerHTML = '';
+  for (const k of loadKeys()) {
+    const opt = document.createElement('option');
+    opt.value = k.name; opt.textContent = k.name;
+    sel.appendChild(opt);
+  }
+  sel.value = loadActiveKeyName();
+}
 
 // The base prompt for a preset: the user's saved override if any, else default.
 function effectivePrompt(presetKey) {
@@ -201,16 +215,39 @@ function populatePresets() {
 function init() {
   populatePresets();
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
-  $('api-key').value = state.apiKey;
+  refreshKeyDropdown();
   $('model').value = state.model;
 
   $('settings-toggle').addEventListener('click', () =>
     $('settings-panel').classList.toggle('hidden'));
   $('settings-save').addEventListener('click', () => {
-    state.apiKey = $('api-key').value.trim();
     state.model = $('model').value.trim() || state.model;
-    saveSettings({ apiKey: state.apiKey, model: state.model });
+    saveSettings({ model: state.model });
     $('settings-panel').classList.add('hidden');
+  });
+
+  $('active-key').addEventListener('change', (e) => {
+    setActiveKeyName(e.target.value);
+    state.apiKey = getActiveKey();
+  });
+  $('add-key').addEventListener('click', () => {
+    const name = $('new-key-name').value.trim();
+    const value = $('new-key-value').value.trim();
+    if (!name || !value) { alert('請輸入名稱與 API key'); return; }
+    saveKey(name, value);
+    setActiveKeyName(name);
+    state.apiKey = getActiveKey();
+    $('new-key-name').value = '';
+    $('new-key-value').value = '';
+    refreshKeyDropdown();
+  });
+  $('delete-key').addEventListener('click', () => {
+    const name = $('active-key').value;
+    if (!name) return;
+    if (!confirm(`刪除 API key「${name}」？`)) return;
+    deleteKey(name);
+    state.apiKey = getActiveKey();
+    refreshKeyDropdown();
   });
 
   $('style-preset').addEventListener('change', (e) => {
