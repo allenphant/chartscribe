@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChartScribe — 圖表描述產生器</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>ChartScribe</h1>
+    <button id="settings-toggle" type="button">⚙ API key &amp; 模型設定</button>
+  </header>
+
+  <section id="settings-panel" class="panel hidden">
+    <label>Gemini API key
+      <input id="api-key" type="password" placeholder="貼上你的 API key（存於瀏覽器本機）">
+    </label>
+    <label>模型
+      <input id="model" type="text" placeholder="gemini-2.5-flash">
+    </label>
+    <button id="settings-save" type="button">儲存</button>
+    <p class="hint">API key 僅存於此瀏覽器的 localStorage，不會上傳到任何伺服器（除了直接呼叫 Google）。</p>
+  </section>
+
+  <section class="controls">
+    <label>風格預設
+      <select id="style-preset"></select>
+    </label>
+    <label>共用指示（套用到整批，選填）
+      <textarea id="shared-instructions" rows="2" placeholder="例如：用正式書面語氣"></textarea>
+    </label>
+    <fieldset class="formats">
+      <legend>輸出格式</legend>
+      <label><input type="radio" name="fmt" value="plain"> 純文字</label>
+      <label><input type="radio" name="fmt" value="markdown" checked> Markdown</label>
+      <label><input type="radio" name="fmt" value="latex"> LaTeX</label>
+    </fieldset>
+  </section>
+
+  <div id="dropzone" class="dropzone">
+    拖拉圖片到這裡，或 <button id="file-pick" type="button">點選檔案</button>，或 Ctrl+V 貼上
+    <input id="file-input" type="file" accept="image/*" multiple hidden>
+  </div>
+
+  <main id="cards" class="cards"></main>
+
+  <footer class="actions">
+    <button id="generate-all" type="button">產生全部</button>
+    <button id="combine" type="button">合併全部</button>
+  </footer>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
