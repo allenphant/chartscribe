@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PRESETS, buildSystemPrompt } from '../js/presets.js';
+import { PRESETS, defaultPrompt, buildSystemPrompt } from '../js/presets.js';
 
 test('PRESETS contains the five expected keys', () => {
   assert.deepEqual(
@@ -9,24 +9,29 @@ test('PRESETS contains the five expected keys', () => {
   );
 });
 
-test('general preset omits objective rules but keeps language rules', () => {
-  const p = buildSystemPrompt('general', '', '');
-  assert.ok(!p.includes('客觀守則'));
+test('general default prompt keeps language rules but omits objective rules', () => {
+  const p = defaultPrompt('general');
   assert.ok(p.includes('保留英文'));
+  assert.ok(!p.includes('客觀守則'));
 });
 
-test('amr preset includes objective rules and language rules', () => {
-  const p = buildSystemPrompt('amr_susceptibility', '', '');
+test('amr default prompt includes objective rules and language rules', () => {
+  const p = defaultPrompt('amr_susceptibility');
   assert.ok(p.includes('客觀守則'));
   assert.ok(p.includes('保留英文'));
 });
 
-test('shared instructions and per-card context are appended when present', () => {
-  const p = buildSystemPrompt('general', '用正式語氣', '112 年 ceftriaxone 為 88%');
+test('unknown preset falls back to general default prompt', () => {
+  assert.equal(defaultPrompt('nope'), defaultPrompt('general'));
+});
+
+test('buildSystemPrompt appends shared instructions and per-card context', () => {
+  const p = buildSystemPrompt('BASE_PROMPT', '用正式語氣', '112 年 ceftriaxone 為 88%');
+  assert.ok(p.startsWith('BASE_PROMPT'));
   assert.ok(p.includes('用正式語氣'));
   assert.ok(p.includes('112 年 ceftriaxone 為 88%'));
 });
 
-test('unknown preset falls back to general', () => {
-  assert.equal(buildSystemPrompt('nope', '', ''), buildSystemPrompt('general', '', ''));
+test('buildSystemPrompt with no extras returns the base prompt unchanged', () => {
+  assert.equal(buildSystemPrompt('BASE', '', ''), 'BASE');
 });

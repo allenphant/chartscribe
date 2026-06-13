@@ -27,6 +27,14 @@
     <label>風格預設
       <select id="style-preset"></select>
     </label>
+    <details class="prompt-editor">
+      <summary>檢視 / 編輯此預設的 system prompt</summary>
+      <textarea id="preset-prompt" rows="10"></textarea>
+      <div class="prompt-editor-actions">
+        <button id="preset-reset" type="button">還原預設</button>
+        <span class="hint">編輯內容會即時儲存於本機，並用於產生描述。</span>
+      </div>
+    </details>
     <label>共用指示（套用到整批，選填）
       <textarea id="shared-instructions" rows="2" placeholder="例如：用正式書面語氣"></textarea>
     </label>

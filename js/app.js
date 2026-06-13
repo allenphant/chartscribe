@@ -1,5 +1,8 @@
-import { loadSettings, saveSettings } from './storage.js';
-import { PRESETS, buildSystemPrompt } from './presets.js';
+import {
+  loadSettings, saveSettings,
+  loadPromptOverrides, savePromptOverride, clearPromptOverride,
+} from './storage.js';
+import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
 import { generateDescription, GeminiError } from './gemini.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
@@ -7,10 +10,17 @@ import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 const state = {
   ...loadSettings(),
   stylePreset: 'general',
+  promptOverrides: loadPromptOverrides(),
   sharedInstructions: '',
   outputFormat: 'markdown',
   cards: [],
 };
+
+// The base prompt for a preset: the user's saved override if any, else default.
+function effectivePrompt(presetKey) {
+  const o = state.promptOverrides[presetKey];
+  return o !== undefined ? o : defaultPrompt(presetKey);
+}
 
 const $ = (id) => document.getElementById(id);
 let nextId = 1;
@@ -72,7 +82,7 @@ async function generateCard(card) {
   try {
     const base64Data = await readAsBase64(card.file);
     const systemPrompt = buildSystemPrompt(
-      state.stylePreset, state.sharedInstructions, card.perCardContext
+      effectivePrompt(state.stylePreset), state.sharedInstructions, card.perCardContext
     );
     const markdown = await callWithRetry({
       apiKey: state.apiKey, model: state.model,
@@ -203,7 +213,20 @@ function init() {
     $('settings-panel').classList.add('hidden');
   });
 
-  $('style-preset').addEventListener('change', (e) => { state.stylePreset = e.target.value; });
+  $('style-preset').addEventListener('change', (e) => {
+    state.stylePreset = e.target.value;
+    $('preset-prompt').value = effectivePrompt(state.stylePreset);
+  });
+  $('preset-prompt').value = effectivePrompt(state.stylePreset);
+  $('preset-prompt').addEventListener('input', (e) => {
+    state.promptOverrides[state.stylePreset] = e.target.value;
+    savePromptOverride(state.stylePreset, e.target.value);
+  });
+  $('preset-reset').addEventListener('click', () => {
+    delete state.promptOverrides[state.stylePreset];
+    clearPromptOverride(state.stylePreset);
+    $('preset-prompt').value = defaultPrompt(state.stylePreset);
+  });
   $('shared-instructions').addEventListener('input', (e) => { state.sharedInstructions = e.target.value; });
   document.querySelectorAll('input[name="fmt"]').forEach((r) =>
     r.addEventListener('change', (e) => {

@@ -1,6 +1,9 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { loadSettings, saveSettings, DEFAULT_MODEL } from '../js/storage.js';
+import {
+  loadSettings, saveSettings, DEFAULT_MODEL,
+  loadPromptOverrides, savePromptOverride, clearPromptOverride,
+} from '../js/storage.js';
 
 beforeEach(() => {
   const store = new Map();
@@ -27,4 +30,24 @@ test('saveSettings then loadSettings round-trips', () => {
 test('saveSettings ignores blank model and keeps default', () => {
   saveSettings({ apiKey: 'k', model: '' });
   assert.equal(loadSettings().model, DEFAULT_MODEL);
+});
+
+test('prompt overrides start empty', () => {
+  assert.deepEqual(loadPromptOverrides(), {});
+});
+
+test('savePromptOverride persists per preset', () => {
+  savePromptOverride('general', '我的版本');
+  savePromptOverride('amr_trend', '另一版');
+  assert.equal(loadPromptOverrides().general, '我的版本');
+  assert.equal(loadPromptOverrides().amr_trend, '另一版');
+});
+
+test('clearPromptOverride removes only that preset', () => {
+  savePromptOverride('general', 'x');
+  savePromptOverride('amr_trend', 'y');
+  clearPromptOverride('general');
+  const all = loadPromptOverrides();
+  assert.equal(all.general, undefined);
+  assert.equal(all.amr_trend, 'y');
 });

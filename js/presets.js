@@ -8,7 +8,10 @@ const OBJECTIVE_RULES = `客觀守則：
 - 敏感率（% susceptible）與抗藥率（% resistant）為互補概念，不可混用，依圖表標示為準。
 - 若某數據之檢測菌株數少於 20，不予描述。`;
 
-export const PRESETS = {
+// Per-preset chart-description fragment. The full default prompt for each
+// preset is fragment + language rules + (for AMR presets) objective rules,
+// composed by composeDefault() below so the user can see and edit it all.
+const FRAGMENTS = {
   general: {
     name: '通用',
     objective: false,
@@ -36,10 +39,29 @@ export const PRESETS = {
   },
 };
 
-export function buildSystemPrompt(presetKey, sharedInstructions, perCardContext) {
-  const preset = PRESETS[presetKey] || PRESETS.general;
-  const parts = [preset.fragment, LANGUAGE_RULES];
-  if (preset.objective) parts.push(OBJECTIVE_RULES);
+function composeDefault({ fragment, objective }) {
+  const parts = [fragment, LANGUAGE_RULES];
+  if (objective) parts.push(OBJECTIVE_RULES);
+  return parts.join('\n\n');
+}
+
+// PRESETS exposes each preset's display name and its full default prompt
+// (the complete text that would be sent before shared/per-card context).
+export const PRESETS = Object.fromEntries(
+  Object.entries(FRAGMENTS).map(([key, def]) => [
+    key,
+    { name: def.name, defaultPrompt: composeDefault(def) },
+  ])
+);
+
+export function defaultPrompt(presetKey) {
+  return (PRESETS[presetKey] || PRESETS.general).defaultPrompt;
+}
+
+// Compose the final system prompt from an (editable) base prompt plus the
+// runtime shared instructions and per-card context.
+export function buildSystemPrompt(basePrompt, sharedInstructions, perCardContext) {
+  const parts = [basePrompt];
   if (sharedInstructions && sharedInstructions.trim()) {
     parts.push('使用者共用指示：' + sharedInstructions.trim());
   }
