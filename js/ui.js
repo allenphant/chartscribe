@@ -50,6 +50,7 @@ const STATUS_TEXT = {
 
 export function setCardStatus(cardEl, status, errorMessage) {
   const s = cardEl.querySelector('.status');
+  if (!s) return;
   s.className = 'status ' + status;
   s.textContent = status === 'error'
     ? `錯誤：${errorMessage || '未知錯誤'}`

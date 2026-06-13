@@ -30,7 +30,7 @@ input, textarea, select { padding: 6px 8px; border: 1px solid var(--border); bor
 .card .status { font-size: .8rem; }
 .card .status.error { color: var(--error); }
 .card .status.done { color: var(--ok); }
-.card pre { white-space: pre-wrap; word-break: break-word; background: #f4f6f8;
+.card .output { white-space: pre-wrap; word-break: break-word; background: #f4f6f8;
   border-radius: 6px; padding: 10px; max-height: 300px; overflow: auto; margin: 0; font-size: .85rem; }
 .card .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .card button { border: 1px solid var(--border); background: #fff; border-radius: 6px;

@@ -104,7 +104,7 @@ async function callWithRetry(args) {
 
 async function generateAll() {
   for (const card of state.cards) {
-    if (card.status === 'done') continue;
+    if (card.status === 'done' || card.status === 'processing') continue;
     await generateCard(card);   // sequential
   }
 }
@@ -116,23 +116,45 @@ function copyText(text) {
 
 function download(filename, text) {
   const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(a.href);
+  a.remove();
+  // Defer revocation so the browser has initiated the download first.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 const EXT = { plain: 'txt', markdown: 'md', latex: 'tex' };
 
-function combineAll() {
+// Strip the original file extension so we don't produce "chart.png.md".
+function baseName(name) {
+  return name.replace(/\.[^.]+$/, '');
+}
+
+// Concatenate all completed cards' outputs in the current format, each
+// segment prefixed with its image filename as a title. Returns null if none.
+function buildCombined() {
   const done = state.cards.filter((c) => c.status === 'done');
-  if (!done.length) { alert('尚無已完成的描述'); return; }
+  if (!done.length) return null;
   const sep = state.outputFormat === 'latex' ? '\n\n% ----\n\n' : '\n\n---\n\n';
-  const body = done
-    .map((c) => formatText(c.markdown, state.outputFormat))
+  return done
+    .map((c) => `【${c.file.name}】\n\n${formatText(c.markdown, state.outputFormat)}`)
     .join(sep);
+}
+
+function combineDownload() {
+  const body = buildCombined();
+  if (!body) { alert('尚無已完成的描述'); return; }
   download(`chartscribe-combined.${EXT[state.outputFormat]}`, body);
+}
+
+function combineCopy() {
+  const body = buildCombined();
+  if (!body) { alert('尚無已完成的描述'); return; }
+  copyText(body);
 }
 
 // ---- handlers passed to cards ----
@@ -147,11 +169,11 @@ const handlers = {
   },
   onDownload(id) {
     const c = state.cards.find((x) => x.id === id);
-    if (c) download(`${c.file.name}.${EXT[state.outputFormat]}`, formatText(c.markdown, state.outputFormat));
+    if (c) download(`${baseName(c.file.name)}.${EXT[state.outputFormat]}`, formatText(c.markdown, state.outputFormat));
   },
   onRegen(id) {
     const c = state.cards.find((x) => x.id === id);
-    if (c) generateCard(c);
+    if (c && c.status !== 'processing') generateCard(c);
   },
 };
 
@@ -168,6 +190,7 @@ function populatePresets() {
 
 function init() {
   populatePresets();
+  state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
   $('api-key').value = state.apiKey;
   $('model').value = state.model;
 
@@ -193,12 +216,16 @@ function init() {
 
   const dz = $('dropzone');
   dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('dragleave', (e) => {
+    // Ignore dragleave fired when moving onto a child element of the dropzone.
+    if (!dz.contains(e.relatedTarget)) dz.classList.remove('dragover');
+  });
   dz.addEventListener('drop', (e) => {
     e.preventDefault(); dz.classList.remove('dragover');
     addFiles(e.dataTransfer.files);
   });
   window.addEventListener('paste', (e) => {
+    if (!e.clipboardData) return;
     const imgs = [...e.clipboardData.items]
       .filter((i) => i.type.startsWith('image/'))
       .map((i) => i.getAsFile())
@@ -207,7 +234,8 @@ function init() {
   });
 
   $('generate-all').addEventListener('click', generateAll);
-  $('combine').addEventListener('click', combineAll);
+  $('combine').addEventListener('click', combineDownload);
+  $('combine-copy').addEventListener('click', combineCopy);
 }
 
 init();
