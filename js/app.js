@@ -1,16 +1,39 @@
-import { loadSettings, saveSettings } from './storage.js';
-import { PRESETS, buildSystemPrompt } from './presets.js';
-import { generateDescription, GeminiError } from './gemini.js';
+import {
+  DEFAULT_MODEL,
+  loadPromptOverrides, savePromptOverride, clearPromptOverride,
+  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry,
+} from './storage.js';
+import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
+import { generateDescription, ApiError } from './gemini.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 
 const state = {
-  ...loadSettings(),
   stylePreset: 'general',
+  promptOverrides: loadPromptOverrides(),
   sharedInstructions: '',
   outputFormat: 'markdown',
   cards: [],
 };
+
+// Rebuild the active-key dropdown from storage and select the active entry.
+function refreshKeyDropdown() {
+  const sel = document.getElementById('active-key');
+  sel.innerHTML = '';
+  for (const k of loadKeys()) {
+    const opt = document.createElement('option');
+    opt.value = k.name;
+    opt.textContent = k.name;
+    sel.appendChild(opt);
+  }
+  sel.value = loadActiveKeyName();
+}
+
+// The base prompt for a preset: the user's saved override if any, else default.
+function effectivePrompt(presetKey) {
+  const o = state.promptOverrides[presetKey];
+  return o !== undefined ? o : defaultPrompt(presetKey);
+}
 
 const $ = (id) => document.getElementById(id);
 let nextId = 1;
@@ -61,7 +84,8 @@ function addFiles(fileList) {
 
 // ---- generation ----
 async function generateCard(card) {
-  if (!state.apiKey) {
+  const entry = getActiveKeyEntry();
+  if (!entry || !entry.key) {
     card.status = 'error';
     card.errorMessage = '尚未設定 API key（點右上設定）';
     setCardStatus(cardEl(card.id), card.status, card.errorMessage);
@@ -72,10 +96,10 @@ async function generateCard(card) {
   try {
     const base64Data = await readAsBase64(card.file);
     const systemPrompt = buildSystemPrompt(
-      state.stylePreset, state.sharedInstructions, card.perCardContext
+      effectivePrompt(state.stylePreset), state.sharedInstructions, card.perCardContext
     );
     const markdown = await callWithRetry({
-      apiKey: state.apiKey, model: state.model,
+      apiKey: entry.key, model: entry.model,
       systemPrompt, base64Data, mimeType: card.file.type,
     });
     card.markdown = markdown;
@@ -84,7 +108,7 @@ async function generateCard(card) {
     refreshCardOutput(card);
   } catch (err) {
     card.status = 'error';
-    card.errorMessage = err instanceof GeminiError ? `${err.status} ${err.message}` : String(err);
+    card.errorMessage = err instanceof ApiError ? `${err.status} ${err.message}` : String(err);
     setCardStatus(cardEl(card.id), card.status, card.errorMessage);
   }
 }
@@ -94,7 +118,7 @@ async function callWithRetry(args) {
   try {
     return await generateDescription(args);
   } catch (err) {
-    if (err instanceof GeminiError && err.status === 429) {
+    if (err instanceof ApiError && err.status === 429) {
       await new Promise((r) => setTimeout(r, 2000));
       return generateDescription(args);
     }
@@ -191,19 +215,47 @@ function populatePresets() {
 function init() {
   populatePresets();
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
-  $('api-key').value = state.apiKey;
-  $('model').value = state.model;
+  refreshKeyDropdown();
+  $('new-key-model').value = DEFAULT_MODEL;
 
   $('settings-toggle').addEventListener('click', () =>
     $('settings-panel').classList.toggle('hidden'));
-  $('settings-save').addEventListener('click', () => {
-    state.apiKey = $('api-key').value.trim();
-    state.model = $('model').value.trim() || state.model;
-    saveSettings({ apiKey: state.apiKey, model: state.model });
-    $('settings-panel').classList.add('hidden');
+
+  $('active-key').addEventListener('change', (e) => setActiveKeyName(e.target.value));
+
+  $('add-key').addEventListener('click', () => {
+    const name = $('new-key-name').value.trim();
+    const key = $('new-key-value').value.trim();
+    const model = $('new-key-model').value.trim() || DEFAULT_MODEL;
+    if (!name || !key) { alert('請輸入名稱與 API key'); return; }
+    saveKey({ name, key, model });
+    setActiveKeyName(name);
+    $('new-key-name').value = '';
+    $('new-key-value').value = '';
+    refreshKeyDropdown();
+  });
+  $('delete-key').addEventListener('click', () => {
+    const name = $('active-key').value;
+    if (!name) return;
+    if (!confirm(`刪除 API key「${name}」？`)) return;
+    deleteKey(name);
+    refreshKeyDropdown();
   });
 
-  $('style-preset').addEventListener('change', (e) => { state.stylePreset = e.target.value; });
+  $('style-preset').addEventListener('change', (e) => {
+    state.stylePreset = e.target.value;
+    $('preset-prompt').value = effectivePrompt(state.stylePreset);
+  });
+  $('preset-prompt').value = effectivePrompt(state.stylePreset);
+  $('preset-prompt').addEventListener('input', (e) => {
+    state.promptOverrides[state.stylePreset] = e.target.value;
+    savePromptOverride(state.stylePreset, e.target.value);
+  });
+  $('preset-reset').addEventListener('click', () => {
+    delete state.promptOverrides[state.stylePreset];
+    clearPromptOverride(state.stylePreset);
+    $('preset-prompt').value = defaultPrompt(state.stylePreset);
+  });
   $('shared-instructions').addEventListener('input', (e) => { state.sharedInstructions = e.target.value; });
   document.querySelectorAll('input[name="fmt"]').forEach((r) =>
     r.addEventListener('change', (e) => {

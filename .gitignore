@@ -8,3 +8,6 @@ Thumbs.db
 # 編輯器
 .vscode/
 .idea/
+
+# Claude Code 本機設定
+.claude/

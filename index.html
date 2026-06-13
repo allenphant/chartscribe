@@ -13,20 +13,38 @@
   </header>
 
   <section id="settings-panel" class="panel hidden">
-    <label>Gemini API key
-      <input id="api-key" type="password" placeholder="貼上你的 API key（存於瀏覽器本機）">
+    <label>目前使用的 API key
+      <select id="active-key"></select>
     </label>
-    <label>模型
-      <input id="model" type="text" placeholder="gemini-2.5-flash">
-    </label>
-    <button id="settings-save" type="button">儲存</button>
-    <p class="hint">API key 僅存於此瀏覽器的 localStorage，不會上傳到任何伺服器（除了直接呼叫 Google）。</p>
+    <button id="delete-key" type="button">刪除此 key</button>
+    <fieldset class="add-key">
+      <legend>新增 API key</legend>
+      <label>名稱
+        <input id="new-key-name" type="text" placeholder="例如：個人帳號">
+      </label>
+      <label>Gemini API key
+        <input id="new-key-value" type="password" placeholder="貼上你的 Gemini API key">
+      </label>
+      <label>模型
+        <input id="new-key-model" type="text" placeholder="gemini-2.5-flash">
+      </label>
+      <button id="add-key" type="button">新增</button>
+    </fieldset>
+    <p class="hint">API key 僅存於此瀏覽器的 localStorage，只會直接傳給 Google，不經任何中間伺服器。</p>
   </section>
 
   <section class="controls">
     <label>風格預設
       <select id="style-preset"></select>
     </label>
+    <details class="prompt-editor">
+      <summary>檢視 / 編輯此預設的 system prompt</summary>
+      <textarea id="preset-prompt" rows="10"></textarea>
+      <div class="prompt-editor-actions">
+        <button id="preset-reset" type="button">還原預設</button>
+        <span class="hint">編輯內容會即時儲存於本機，並用於產生描述。</span>
+      </div>
+    </details>
     <label>共用指示（套用到整批，選填）
       <textarea id="shared-instructions" rows="2" placeholder="例如：用正式書面語氣"></textarea>
     </label>
