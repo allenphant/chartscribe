@@ -26,11 +26,12 @@
         <input id="new-key-value" type="password" placeholder="貼上你的 Gemini API key">
       </label>
       <label>模型
-        <input id="new-key-model" type="text" placeholder="gemini-2.5-flash">
+        <input id="new-key-model" type="text" placeholder="gemini-3.1-flash-lite">
       </label>
       <button id="add-key" type="button">新增</button>
     </fieldset>
     <p class="hint">API key 僅存於此瀏覽器的 localStorage，只會直接傳給 Google，不經任何中間伺服器。</p>
+    <p class="hint notice">建議模型：<b>gemini-3.1-flash-lite</b>。免費方案有頻率限制（每分鐘／每日上限），大量圖片可能需分批或改用付費方案。敏感資料請注意：免費方案下你的輸入可能被 Google 用於改進模型。</p>
   </section>
 
   <section class="controls">

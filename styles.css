@@ -23,6 +23,8 @@ input, textarea, select { padding: 6px 8px; border: 1px solid var(--border); bor
 .formats { border: 1px solid var(--border); border-radius: 6px; }
 .formats label { flex-direction: row; align-items: center; gap: 6px; display: inline-flex; margin-right: 12px; }
 .hint { font-size: .8rem; color: #667; margin: 0; }
+.hint.notice { background: #fff7e6; border: 1px solid #f0d9a8; border-radius: 6px;
+  padding: 8px 10px; color: #6b4e1a; line-height: 1.5; }
 .prompt-editor { font-size: .9rem; }
 .prompt-editor summary { cursor: pointer; color: var(--accent); padding: 4px 0; }
 #preset-prompt { width: 100%; font: inherit; font-size: .82rem; resize: vertical; margin-top: 6px; }

@@ -11,9 +11,10 @@
 - API key 存於使用者自己瀏覽器的 localStorage，只直接傳給 Google，不經任何中間伺服器。
 
 ## 給使用者
-開啟網站後，點右上「⚙ API key & 模型設定」→「新增 API key」：填名稱、貼上自己的 [Gemini API key](https://aistudio.google.com/apikey)、按「新增」即可開始。模型預設 `gemini-2.5-flash`。
+開啟網站後，點右上「⚙ API key & 模型設定」→「新增 API key」：填名稱、貼上自己的 [Gemini API key](https://aistudio.google.com/apikey)、按「新增」即可開始。建議模型 `gemini-3.1-flash-lite`。
 
 > 每位使用者用自己的 key；網站本身不含任何 key。
+> 免費方案有頻率限制；敏感資料請留意，免費方案下輸入可能被 Google 用於改進模型。
 
 ## 部署成網站（給網址讓別人用）
 這是一個純靜態網站（`index.html` + `js/` + `styles.css`，路徑皆相對），可放到任何免費靜態空間：

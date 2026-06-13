@@ -1,4 +1,4 @@
-export const DEFAULT_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_MODEL = 'gemini-3.1-flash-lite';
 const KEY_API = 'chartscribe.apiKey';      // legacy single key (migration only)
 const KEY_PROMPTS = 'chartscribe.prompts';
 const KEY_KEYS = 'chartscribe.keys';
