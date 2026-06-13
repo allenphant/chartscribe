@@ -1,16 +1,13 @@
 import {
-  loadSettings, saveSettings,
   loadPromptOverrides, savePromptOverride, clearPromptOverride,
-  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKey,
+  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry,
 } from './storage.js';
 import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
-import { generateDescription, GeminiError } from './gemini.js';
+import { generateDescription, ApiError, PROVIDERS, guessProvider } from './providers.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 
 const state = {
-  ...loadSettings(),
-  apiKey: getActiveKey(),
   stylePreset: 'general',
   promptOverrides: loadPromptOverrides(),
   sharedInstructions: '',
@@ -24,7 +21,8 @@ function refreshKeyDropdown() {
   sel.innerHTML = '';
   for (const k of loadKeys()) {
     const opt = document.createElement('option');
-    opt.value = k.name; opt.textContent = k.name;
+    opt.value = k.name;
+    opt.textContent = `${k.name}（${PROVIDERS[k.provider]?.label || k.provider}）`;
     sel.appendChild(opt);
   }
   sel.value = loadActiveKeyName();
@@ -85,7 +83,8 @@ function addFiles(fileList) {
 
 // ---- generation ----
 async function generateCard(card) {
-  if (!state.apiKey) {
+  const entry = getActiveKeyEntry();
+  if (!entry || !entry.key) {
     card.status = 'error';
     card.errorMessage = '尚未設定 API key（點右上設定）';
     setCardStatus(cardEl(card.id), card.status, card.errorMessage);
@@ -99,7 +98,7 @@ async function generateCard(card) {
       effectivePrompt(state.stylePreset), state.sharedInstructions, card.perCardContext
     );
     const markdown = await callWithRetry({
-      apiKey: state.apiKey, model: state.model,
+      provider: entry.provider, apiKey: entry.key, model: entry.model,
       systemPrompt, base64Data, mimeType: card.file.type,
     });
     card.markdown = markdown;
@@ -108,7 +107,7 @@ async function generateCard(card) {
     refreshCardOutput(card);
   } catch (err) {
     card.status = 'error';
-    card.errorMessage = err instanceof GeminiError ? `${err.status} ${err.message}` : String(err);
+    card.errorMessage = err instanceof ApiError ? `${err.status} ${err.message}` : String(err);
     setCardStatus(cardEl(card.id), card.status, card.errorMessage);
   }
 }
@@ -118,7 +117,7 @@ async function callWithRetry(args) {
   try {
     return await generateDescription(args);
   } catch (err) {
-    if (err instanceof GeminiError && err.status === 429) {
+    if (err instanceof ApiError && err.status === 429) {
       await new Promise((r) => setTimeout(r, 2000));
       return generateDescription(args);
     }
@@ -212,31 +211,47 @@ function populatePresets() {
   sel.value = state.stylePreset;
 }
 
+function populateProviderSelect() {
+  const sel = $('new-key-provider');
+  sel.innerHTML = '';
+  for (const [key, p] of Object.entries(PROVIDERS)) {
+    const opt = document.createElement('option');
+    opt.value = key; opt.textContent = p.label;
+    sel.appendChild(opt);
+  }
+  $('new-key-model').value = PROVIDERS[sel.value].defaultModel;
+}
+
 function init() {
   populatePresets();
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
+  populateProviderSelect();
   refreshKeyDropdown();
-  $('model').value = state.model;
 
   $('settings-toggle').addEventListener('click', () =>
     $('settings-panel').classList.toggle('hidden'));
-  $('settings-save').addEventListener('click', () => {
-    state.model = $('model').value.trim() || state.model;
-    saveSettings({ model: state.model });
-    $('settings-panel').classList.add('hidden');
-  });
 
-  $('active-key').addEventListener('change', (e) => {
-    setActiveKeyName(e.target.value);
-    state.apiKey = getActiveKey();
+  $('active-key').addEventListener('change', (e) => setActiveKeyName(e.target.value));
+
+  // Auto-detect provider from the key prefix, prefill the matching default model.
+  $('new-key-value').addEventListener('input', (e) => {
+    const p = guessProvider(e.target.value);
+    $('new-key-provider').value = p;
+    if (!$('new-key-model').value.trim()) {
+      $('new-key-model').value = PROVIDERS[p].defaultModel;
+    }
+  });
+  $('new-key-provider').addEventListener('change', (e) => {
+    $('new-key-model').value = PROVIDERS[e.target.value].defaultModel;
   });
   $('add-key').addEventListener('click', () => {
     const name = $('new-key-name').value.trim();
-    const value = $('new-key-value').value.trim();
-    if (!name || !value) { alert('請輸入名稱與 API key'); return; }
-    saveKey(name, value);
+    const key = $('new-key-value').value.trim();
+    const provider = $('new-key-provider').value;
+    const model = $('new-key-model').value.trim() || PROVIDERS[provider].defaultModel;
+    if (!name || !key) { alert('請輸入名稱與 API key'); return; }
+    saveKey({ name, provider, key, model });
     setActiveKeyName(name);
-    state.apiKey = getActiveKey();
     $('new-key-name').value = '';
     $('new-key-value').value = '';
     refreshKeyDropdown();
@@ -246,7 +261,6 @@ function init() {
     if (!name) return;
     if (!confirm(`刪除 API key「${name}」？`)) return;
     deleteKey(name);
-    state.apiKey = getActiveKey();
     refreshKeyDropdown();
   });
 
