@@ -4,11 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ChartScribe — 圖表描述產生器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
-    <h1>ChartScribe</h1>
+    <div class="brand">
+      <svg viewBox="0 0 40 40" class="leaf" aria-hidden="true">
+        <path d="M20 4 C 28 8, 32 16, 30 28 C 24 26, 16 22, 12 14 C 14 8, 18 4, 20 4 Z"
+              fill="var(--sc-forest)" opacity="0.45"/>
+        <path d="M20 4 L 20 32" stroke="var(--sc-forest)" stroke-width="0.8" opacity="0.6"/>
+      </svg>
+      <div class="brand-text">
+        <h1>ChartScribe</h1>
+        <span class="tagline">圖表描述產生器</span>
+      </div>
+    </div>
     <button id="settings-toggle" type="button">⚙ API key &amp; 模型設定</button>
   </header>
 
