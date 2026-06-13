@@ -27,7 +27,7 @@ export function clearPromptOverride(presetKey) {
 }
 
 // ---- named API keys ----
-// Each entry: { name, provider, key, model }.
+// Each entry: { name, key, model }.
 function readKeys() {
   try {
     return JSON.parse(localStorage.getItem(KEY_KEYS) || 'null');
@@ -43,7 +43,7 @@ export function loadKeys() {
   if (!Array.isArray(keys)) {
     const legacy = localStorage.getItem(KEY_API);
     keys = legacy
-      ? [{ name: '預設', provider: 'gemini', key: legacy, model: DEFAULT_MODEL }]
+      ? [{ name: '預設', key: legacy, model: DEFAULT_MODEL }]
       : [];
     localStorage.setItem(KEY_KEYS, JSON.stringify(keys));
     if (legacy && !localStorage.getItem(KEY_ACTIVE)) {
@@ -54,9 +54,9 @@ export function loadKeys() {
 }
 
 // Add an entry, or overwrite the existing entry with the same name.
-export function saveKey({ name, provider, key, model }) {
+export function saveKey({ name, key, model }) {
   const keys = loadKeys();
-  const entry = { name, provider, key, model };
+  const entry = { name, key, model };
   const i = keys.findIndex((k) => k.name === name);
   if (i >= 0) keys[i] = entry;
   else keys.push(entry);

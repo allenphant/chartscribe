@@ -1,9 +1,10 @@
 import {
+  DEFAULT_MODEL,
   loadPromptOverrides, savePromptOverride, clearPromptOverride,
   loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry,
 } from './storage.js';
 import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
-import { generateDescription, ApiError, PROVIDERS, guessProvider } from './providers.js';
+import { generateDescription, ApiError } from './gemini.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 
@@ -22,7 +23,7 @@ function refreshKeyDropdown() {
   for (const k of loadKeys()) {
     const opt = document.createElement('option');
     opt.value = k.name;
-    opt.textContent = `${k.name}（${PROVIDERS[k.provider]?.label || k.provider}）`;
+    opt.textContent = k.name;
     sel.appendChild(opt);
   }
   sel.value = loadActiveKeyName();
@@ -98,7 +99,7 @@ async function generateCard(card) {
       effectivePrompt(state.stylePreset), state.sharedInstructions, card.perCardContext
     );
     const markdown = await callWithRetry({
-      provider: entry.provider, apiKey: entry.key, model: entry.model,
+      apiKey: entry.key, model: entry.model,
       systemPrompt, base64Data, mimeType: card.file.type,
     });
     card.markdown = markdown;
@@ -211,46 +212,23 @@ function populatePresets() {
   sel.value = state.stylePreset;
 }
 
-function populateProviderSelect() {
-  const sel = $('new-key-provider');
-  sel.innerHTML = '';
-  for (const [key, p] of Object.entries(PROVIDERS)) {
-    const opt = document.createElement('option');
-    opt.value = key; opt.textContent = p.label;
-    sel.appendChild(opt);
-  }
-  $('new-key-model').value = PROVIDERS[sel.value].defaultModel;
-}
-
 function init() {
   populatePresets();
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
-  populateProviderSelect();
   refreshKeyDropdown();
+  $('new-key-model').value = DEFAULT_MODEL;
 
   $('settings-toggle').addEventListener('click', () =>
     $('settings-panel').classList.toggle('hidden'));
 
   $('active-key').addEventListener('change', (e) => setActiveKeyName(e.target.value));
 
-  // Auto-detect provider from the key prefix, prefill the matching default model.
-  $('new-key-value').addEventListener('input', (e) => {
-    const p = guessProvider(e.target.value);
-    $('new-key-provider').value = p;
-    if (!$('new-key-model').value.trim()) {
-      $('new-key-model').value = PROVIDERS[p].defaultModel;
-    }
-  });
-  $('new-key-provider').addEventListener('change', (e) => {
-    $('new-key-model').value = PROVIDERS[e.target.value].defaultModel;
-  });
   $('add-key').addEventListener('click', () => {
     const name = $('new-key-name').value.trim();
     const key = $('new-key-value').value.trim();
-    const provider = $('new-key-provider').value;
-    const model = $('new-key-model').value.trim() || PROVIDERS[provider].defaultModel;
+    const model = $('new-key-model').value.trim() || DEFAULT_MODEL;
     if (!name || !key) { alert('請輸入名稱與 API key'); return; }
-    saveKey({ name, provider, key, model });
+    saveKey({ name, key, model });
     setActiveKeyName(name);
     $('new-key-name').value = '';
     $('new-key-value').value = '';

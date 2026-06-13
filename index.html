@@ -22,18 +22,15 @@
       <label>名稱
         <input id="new-key-name" type="text" placeholder="例如：個人帳號">
       </label>
-      <label>供應商
-        <select id="new-key-provider"></select>
-      </label>
-      <label>API key
-        <input id="new-key-value" type="password" placeholder="貼上 API key（nvapi- 開頭會自動辨識為 NVIDIA）">
+      <label>Gemini API key
+        <input id="new-key-value" type="password" placeholder="貼上你的 Gemini API key">
       </label>
       <label>模型
-        <input id="new-key-model" type="text" placeholder="模型名稱">
+        <input id="new-key-model" type="text" placeholder="gemini-2.5-flash">
       </label>
       <button id="add-key" type="button">新增</button>
     </fieldset>
-    <p class="hint">API key 僅存於此瀏覽器的 localStorage。NVIDIA 端點可能因 CORS 無法從瀏覽器直連，若如此會在卡片顯示網路錯誤。</p>
+    <p class="hint">API key 僅存於此瀏覽器的 localStorage，只會直接傳給 Google，不經任何中間伺服器。</p>
   </section>
 
   <section class="controls">
