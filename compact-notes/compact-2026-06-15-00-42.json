@@ -1,0 +1,163 @@
+{
+  "L0": "ChartScribe（圖表→描述文字工具）：Gemini-only 純前端靜態站已部署到 GitHub Pages 並上線，含可編輯預設 prompt、多組命名 API key、北歐風 UI、視覺化預設卡片 gallery 與範例圖文；核心全部完成，僅缺 general.png 範例圖",
+  "compact_version": "2.0",
+  "timestamp": "2026-06-15T00:42:20+08:00",
+  "project": {
+    "name": "ChartScribe",
+    "path": "C:\\Users\\raging\\Desktop\\Vibe_coding\\SurvReport",
+    "tech_stack": ["JavaScript (vanilla ES modules)", "HTML", "CSS", "node:test", "Google Gemini API", "GitHub Pages"],
+    "description": "純前端零建置工具：把圖表圖片透過 Google Gemini Vision 轉成客觀描述文字（純文字/Markdown/LaTeX），內建臺灣抗生素抗藥性監視年報(AMR)風格預設"
+  },
+  "session_goal": "原始目標：閱讀臺灣抗生素抗藥性監視年報(2024/民國113年)，做一個能把年報圖表轉成貼合原文風格描述文字的工具。後續演進為：實作 ChartScribe、迭代功能與 UI，並部署成別人可零安裝使用的網站。",
+  "completed": [
+    {
+      "task": "分析整份 AMR 年報結構與寫作風格",
+      "files": ["報告結構分析.md"],
+      "detail": "歸納五章結構、四種圖表類型(敏感圖譜/抗藥率橫條/組成堆疊/趨勢折線)與客觀寫作守則"
+    },
+    {
+      "task": "brainstorming → spec → plan（superpowers 流程）",
+      "files": ["docs/superpowers/specs/2026-06-13-chartscribe-design.md", "docs/superpowers/plans/2026-06-13-chartscribe.md"],
+      "detail": "確定純前端+雲端Gemini、無建置ES module、混合風格預設；spec只涵蓋最初核心工具"
+    },
+    {
+      "task": "以 subagent-driven TDD 建出核心工具",
+      "files": ["js/gemini.js", "js/storage.js", "js/presets.js", "js/formats.js", "js/ui.js", "js/app.js", "index.html", "styles.css", "package.json", "test/"],
+      "detail": "批次圖片輸入、Gemini呼叫、md→純文字/LaTeX、三格式複製/下載/合併；純邏輯走node:test"
+    },
+    {
+      "task": "可編輯的每個預設 system prompt",
+      "files": ["js/presets.js", "js/storage.js", "js/app.js", "index.html"],
+      "detail": "PRESETS帶完整defaultPrompt；textarea可改、存localStorage、可還原預設"
+    },
+    {
+      "task": "多組命名 API key 管理",
+      "files": ["js/storage.js", "js/app.js", "index.html"],
+      "detail": "keychain {name,key,model}，可新增/切換/刪除；舊單一key自動遷移為「預設」"
+    },
+    {
+      "task": "評估後移除 NVIDIA，聚焦 Gemini-only",
+      "files": ["js/gemini.js", "js/storage.js", "js/app.js", "index.html", "README.md"],
+      "detail": "曾加多供應商(providers.js)，因NVIDIA瀏覽器CORS無解、會牴觸零安裝分享，故移除回gemini.js"
+    },
+    {
+      "task": "部署到 GitHub Pages",
+      "files": ["README.md"],
+      "detail": "gh建立公開repo allenphant/chartscribe 並啟用Pages，網址 https://allenphant.github.io/chartscribe/"
+    },
+    {
+      "task": "加入模型/額度/隱私提示，預設模型改 gemini-3.1-flash-lite",
+      "files": ["js/storage.js", "index.html", "styles.css", "README.md"],
+      "detail": "設定面板notice：建議模型、免費方案頻率限制、敏感資料隱私；DEFAULT_MODEL=gemini-3.1-flash-lite"
+    },
+    {
+      "task": "北歐極簡(Scandinavian)UI 重新設計",
+      "files": ["styles.css", "index.html"],
+      "detail": "亞麻米底+森林綠、軟陰影、適中圓角、Inter/Noto Sans TC細字、葉片品牌標、毛玻璃sticky列"
+    },
+    {
+      "task": "把風格預設下拉換成視覺化卡片 gallery",
+      "files": ["js/examples.js", "js/app.js", "index.html", "styles.css", "test/examples.test.js", "assets/examples/README.md"],
+      "detail": "每張卡顯示範例輸入圖+範例產出文字；資料在examples.js，圖片放assets/examples/，缺圖顯示佔位"
+    },
+    {
+      "task": "加入4張範例圖並依圖生成範例文字（含換圖後重生組成圖文字）",
+      "files": ["assets/examples/amr_susceptibility.png", "assets/examples/amr_resistance_bar.png", "assets/examples/amr_composition.png", "assets/examples/amr_trend.png", "js/examples.js"],
+      "detail": "讀圖寫出敏感圖譜/抗藥率橫條/組成堆疊(圖2-3-2)/趨勢折線的客觀範例敘述"
+    }
+  ],
+  "in_progress": [
+    {
+      "task": "補齊「通用(general)」預設的範例圖",
+      "status": "5個預設中4個有圖；general.png 尚缺，通用卡片顯示『範例圖』佔位",
+      "next_step": "放一張通用圖表到 assets/examples/general.png，再請我重生 js/examples.js 的 general.output 並push",
+      "blockers": null
+    }
+  ],
+  "failed_approaches": [
+    {
+      "attempt": "純前端瀏覽器直接呼叫 NVIDIA(integrate.api.nvidia.com)",
+      "why_failed": "被瀏覽器CORS擋下(Failed to fetch)；NVIDIA端點不回CORS標頭，客戶端無法解決",
+      "lesson": "瀏覽器跨域呼叫需對方給CORS標頭；要支援NVIDIA得自架線上代理(會變後端、牴觸零安裝分享)。Gemini端點有CORS故可直連"
+    },
+    {
+      "attempt": "想做成 file:// 雙擊開啟的單一HTML",
+      "why_failed": "Chrome不允許從file://載入ES module",
+      "lesson": "ES module版本需用http伺服器(npm start)或部署成網站；要真正雙擊開需把JS/CSS內嵌成單檔(尚未做)"
+    },
+    {
+      "attempt": "早期在範例描述寫了臨床詮釋句『可作為可靠的治療選擇』",
+      "why_failed": "違反使用者的客觀寫作守則(只描述數據、不詮釋)，被使用者當場糾正",
+      "lesson": "AMR描述只寫圖表呈現的數據，不加臨床判斷；專有名詞保留英文、菌種斜體、敏感率與抗藥率不混用、分母<20不呈現"
+    }
+  ],
+  "key_decisions": [
+    {
+      "decision": "純前端 + 雲端 Gemini API，使用者自帶key存localStorage",
+      "reason": "零伺服器、打開即用；符合最終目標『別人點網址、貼自己的key就能用』",
+      "alternatives_rejected": ["輕量後端代理Gemini", "後端+本地Gemma", "純前端瀏覽器內模型(transformers.js)"]
+    },
+    {
+      "decision": "無建置原生 ES module",
+      "reason": "最貼近零安裝、好部署；狀態量小，原生JS可控",
+      "alternatives_rejected": ["Vite+輕框架", "Vite+React"]
+    },
+    {
+      "decision": "AI只回傳一份canonical Markdown，客戶端確定性轉成純文字/LaTeX",
+      "reason": "省token、三格式保證一致、轉換為純函式易測",
+      "alternatives_rejected": ["叫AI一次吐三種格式"]
+    },
+    {
+      "decision": "移除NVIDIA、聚焦Gemini-only靜態站",
+      "reason": "目標是零安裝可分享網站；NVIDIA的CORS只能靠自架代理(後端)解，牴觸目標",
+      "alternatives_rejected": ["整合式本機代理", "保留NVIDIA程式碼待之後接線上代理"]
+    },
+    {
+      "decision": "部署形式選 GitHub Pages 靜態網站(給網址)",
+      "reason": "最像『網站』、最好更新；每位使用者用自己的key",
+      "alternatives_rejected": ["單一自包含HTML可傳檔", "本機代理模式"]
+    },
+    {
+      "decision": "風格預設改成視覺化卡片(範例圖+範例文字)取代下拉選單",
+      "reason": "讓使用者選之前就看得到該預設會產出什麼",
+      "alternatives_rejected": ["保留 <select> 下拉"]
+    },
+    {
+      "decision": "預設模型設為 gemini-3.1-flash-lite",
+      "reason": "使用者指定建議模型；快、便宜、適合看圖任務(模型名以使用者當前知識為準，需上線實測確認有效)",
+      "alternatives_rejected": ["gemini-2.5-flash(先前預設)"]
+    }
+  ],
+  "user_preferences": [
+    "客觀寫作守則：只描述圖表實際數據，不加臨床詮釋/建議",
+    "生物醫學專有名詞(菌種學名、抗生素名、抗藥性縮寫)一律保留英文；菌種學名斜體",
+    "敏感率(% susceptible)與抗藥率(% resistant)為互補概念不可混用；分母<20不呈現",
+    "輸出語言預設繁體中文，可由共用指示覆寫",
+    "最終目標：做成可零安裝分享的網站(或可直接傳的HTML)，別人貼自己的key即可用，絕不把開發者的key寫進去",
+    "UI採北歐極簡(Scandinavian)風格：亞麻米/森林綠、細字、軟陰影、適中圓角、自然元素點綴",
+    "重視API key安全(localStorage風險認知)",
+    "建議使用者用 gemini-3.1-flash-lite、提醒免費方案頻率限制與敏感資料隱私",
+    "採用 subagent-driven development(使用者曾明確選此流程)",
+    "要求變更後直接commit並push到GitHub",
+    "希望保留開發紀錄(compact-notes)以便換電腦接續開發"
+  ],
+  "key_files": {
+    "index.html": "單頁介面骨架(設定面板、預設卡片gallery、共用指示、輸出格式、dropzone、卡片區、動作列)；含字型link",
+    "styles.css": "北歐風樣式：設計tokens、卡片/按鈕/gallery/dropzone樣式",
+    "js/app.js": "主控：全域state、檔案輸入(拖拉/貼上/選取)、批次產生+429重試、格式切換、複製/下載/合併、預設卡片渲染與選取、API key管理UI接線",
+    "js/gemini.js": "Gemini API：ApiError、buildGeminiBody、generateDescription(網路-1/HTTP/空白錯誤)",
+    "js/storage.js": "localStorage：DEFAULT_MODEL、prompt覆寫、命名key keychain(load/save/delete/active/getActiveKeyEntry)、舊key遷移",
+    "js/presets.js": "5個風格預設：PRESETS(name+完整defaultPrompt)、defaultPrompt()、buildSystemPrompt(base+共用指示+專屬說明)；含語言規則與客觀守則",
+    "js/formats.js": "純函式 mdToPlain、mdToLatex(含%{}_等LaTeX逸脫、菌名\\textit)",
+    "js/examples.js": "每個預設的範例{image,output}；卡片資料來源，使用者可改字串與圖檔",
+    "js/ui.js": "卡片DOM建構 createCardElement/setCardStatus/renderCardOutput",
+    "assets/examples/": "預設範例圖片(amr_*.png已有；general.png待補)+README對照表",
+    "test/": "node:test 單元測試(formats/presets/storage/gemini/examples)，目前27個通過",
+    "docs/superpowers/specs/2026-06-13-chartscribe-design.md": "最初核心工具的設計spec(未含後續功能)",
+    "docs/superpowers/plans/2026-06-13-chartscribe.md": "最初核心工具的逐步實作計畫",
+    "報告結構分析.md": "AMR年報結構與寫作守則分析(風格預設的領域知識來源)",
+    "README.md": "功能、給使用者說明、部署指南(Netlify Drop/GitHub Pages)、測試、驗收標準",
+    ".gitignore": "排除 *.pdf(大型來源年報)、.claude/ 本機設定"
+  },
+  "handover_context": "ChartScribe 是一個純前端、零建置的靜態網站工具(vanilla ES modules)，把圖表圖片用 Google Gemini Vision 轉成客觀描述文字(純文字/Markdown/LaTeX)，內建臺灣AMR年報風格預設。已上線於 https://allenphant.github.io/chartscribe/ ，原始碼 https://github.com/allenphant/chartscribe (git remote origin已設、分支master)。本機路徑 C:\\Users\\raging\\Desktop\\Vibe_coding\\SurvReport。執行本機開發用 `npm start`(npx serve，因Chrome不能從file://載ES module)，測試用 `npm test`(node:test，27個通過)。架構：每位使用者在右上設定面板用自己的Gemini key(存localStorage，可多把命名切換)，每把key帶model；風格預設是可點選的卡片(範例圖+範例文字，資料在js/examples.js，圖在assets/examples/)，並可展開編輯該預設完整system prompt(存localStorage、可還原)。產生時AI回傳Markdown，客戶端轉純文字/LaTeX。重要慣例：客觀寫作(只寫數據不詮釋)、生物醫學名詞保留英文、菌名斜體。NVIDIA已評估並移除(瀏覽器CORS擋、需自架代理才行)。注意：commit時Windows會有LF→CRLF警告(無害)，若commit因autocrlf失敗用 `git -c core.autocrlf=false commit`。建議的第一步：(1)確認你在master且 `npm test` 全過；(2)若要補完範例，放 assets/examples/general.png 後請AI重生 js/examples.js 的 general.output；(3)注意設計spec(docs/superpowers/)只涵蓋最初核心，後續功能(可編輯prompt、多key、gemini-only、北歐UI、卡片gallery)是inline開發未更新spec，必要時可補一份現況spec。跨session記憶在 ~/.claude/projects/.../memory/ (不在repo內)。"
+}
