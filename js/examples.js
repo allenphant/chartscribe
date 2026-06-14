@@ -13,18 +13,18 @@ export const EXAMPLES = {
   },
   amr_susceptibility: {
     image: 'assets/examples/amr_susceptibility.png',
-    output: '113 年 E. coli 於 penicillin 類中以 piperacillin/tazobactam 之敏感性（87%）為最高；carbapenem 類與 tigecycline 之敏感性均維持於 97% 以上；fluoroquinolone 類之 ciprofloxacin 與 levofloxacin 約 54%。',
+    output: '本圖為 Aerobic Gram Negative–Non Enterobacterales 敏感性圖譜。A. baumannii 對 aminoglycoside 類（GM 42%、AN 46%）、fluoroquinolone 類（CIP 37%、LVX 39%）與 carbapenem 類（IPM／MEM 39%）敏感性均偏低，僅 tigecycline 達 77%；P. aeruginosa 對 carbapenem 類達 87% 以上、amikacin 97%。',
   },
   amr_resistance_bar: {
     image: 'assets/examples/amr_resistance_bar.png',
-    output: '113 年 K. pneumoniae 對 carbapenem 類之抗藥性約介於 11–15%，對第三代 cephalosporin 類約 28–36%；血液檢體檢出菌株之抗藥率普遍高於尿液檢體。',
+    output: '本圖為某菌種之抗藥性百分比橫條圖（全部檢體，CO+HO）。對 ampicillin 抗藥性最高（約 75%），fluoroquinolone 類（ciprofloxacin、levofloxacin）與 co-trimoxazole 約 45%，第三代 cephalosporin 類約 30%；carbapenem 類最低，均低於 5%。',
   },
   amr_composition: {
     image: 'assets/examples/amr_composition.png',
-    output: '108–113 年血液檢體前三名依序為 E. coli、K. pneumoniae、S. aureus；其中 E. coli 占比約 42–44%，6 年間大致持平。',
+    output: '本圖為 108–113 年醫療相關感染（HO）之 Enterococcus faecalis 菌株數，依醫院層級（醫學中心／區域／地區）分組，每長條再分 S 與 I+R。以醫學中心檢出最多（約 5,000–5,700 株），各層級逐年大致穩定。',
   },
   amr_trend: {
     image: 'assets/examples/amr_trend.png',
-    output: '108→113 年全國 CRKP 抗藥性比例由 12.9% 上升至 15.6%，且各年度均以地區醫院最高、醫學中心最低。',
+    output: '本圖為 108–113 年 VR Enterococcus faecalis 抗藥性百分比趨勢，含醫學中心／區域／地區／全國四條線。整體多在 5% 以下，以地區醫院最高（109 年約 5.5% 後回落至 3–4%），醫學中心最低（約 0.5% 以下）。',
   },
 };
