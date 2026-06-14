@@ -21,7 +21,7 @@ export const EXAMPLES = {
   },
   amr_composition: {
     image: 'assets/examples/amr_composition.png',
-    output: '本圖為 108–113 年醫療相關感染（HO）之 Enterococcus faecalis 菌株數，依醫院層級（醫學中心／區域／地區）分組，每長條再分 S 與 I+R。以醫學中心檢出最多（約 5,000–5,700 株），各層級逐年大致穩定。',
+    output: '本圖為 108–113 年醫療相關感染（HO）各菌種占當年度菌株數之比率（100% 堆疊）。前三名 K. pneumoniae、E. coli、P. aeruginosa 占比相近（各約 16–17%），6 年間大致持平；其後依序為 Enterococcus faecium、S. aureus、A. baumannii 等。',
   },
   amr_trend: {
     image: 'assets/examples/amr_trend.png',
