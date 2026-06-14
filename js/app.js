@@ -4,6 +4,7 @@ import {
   loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry,
 } from './storage.js';
 import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
+import { EXAMPLES } from './examples.js';
 import { generateDescription, ApiError } from './gemini.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
@@ -201,19 +202,62 @@ const handlers = {
   },
 };
 
-// ---- init ----
-function populatePresets() {
-  const sel = $('style-preset');
+// ---- preset gallery (visual picker) ----
+function renderPresetGallery() {
+  const gallery = $('preset-gallery');
+  gallery.innerHTML = '';
   for (const [key, p] of Object.entries(PRESETS)) {
-    const opt = document.createElement('option');
-    opt.value = key; opt.textContent = p.name;
-    sel.appendChild(opt);
+    const ex = EXAMPLES[key] || {};
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'preset-card';
+    card.dataset.preset = key;
+
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'preset-card-img';
+    if (ex.image) {
+      const img = document.createElement('img');
+      img.src = ex.image;
+      img.alt = `${p.name} 範例圖`;
+      img.addEventListener('error', () => { img.remove(); imgWrap.classList.add('empty'); });
+      imgWrap.appendChild(img);
+    } else {
+      imgWrap.classList.add('empty');
+    }
+
+    const body = document.createElement('div');
+    body.className = 'preset-card-body';
+    const name = document.createElement('span');
+    name.className = 'preset-card-name';
+    name.textContent = p.name;
+    const out = document.createElement('p');
+    out.className = 'preset-card-output';
+    out.textContent = ex.output || '（尚未提供範例輸出）';
+    body.append(name, out);
+
+    card.append(imgWrap, body);
+    card.addEventListener('click', () => selectPreset(key));
+    gallery.appendChild(card);
   }
-  sel.value = state.stylePreset;
+  markSelectedPreset();
+}
+
+function markSelectedPreset() {
+  document.querySelectorAll('.preset-card').forEach((el) => {
+    const on = el.dataset.preset === state.stylePreset;
+    el.classList.toggle('selected', on);
+    el.setAttribute('aria-pressed', String(on));
+  });
+}
+
+function selectPreset(key) {
+  state.stylePreset = key;
+  markSelectedPreset();
+  $('preset-prompt').value = effectivePrompt(key);
 }
 
 function init() {
-  populatePresets();
+  renderPresetGallery();
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
   refreshKeyDropdown();
   $('new-key-model').value = DEFAULT_MODEL;
@@ -242,10 +286,6 @@ function init() {
     refreshKeyDropdown();
   });
 
-  $('style-preset').addEventListener('change', (e) => {
-    state.stylePreset = e.target.value;
-    $('preset-prompt').value = effectivePrompt(state.stylePreset);
-  });
   $('preset-prompt').value = effectivePrompt(state.stylePreset);
   $('preset-prompt').addEventListener('input', (e) => {
     state.promptOverrides[state.stylePreset] = e.target.value;
