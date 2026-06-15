@@ -55,14 +55,20 @@ function clearFormMsg() {
   $('key-form-msg').textContent = '';
 }
 
-// Replace the model field's datalist suggestions with a fetched list.
+// Replace the model picker's options with a fetched list, keeping the
+// "從清單選…" placeholder first. The free-text input is left untouched.
 function setModelOptions(models) {
-  const dl = $('model-options');
-  dl.innerHTML = '';
+  const sel = $('model-picker');
+  sel.innerHTML = '';
+  const ph = document.createElement('option');
+  ph.value = '';
+  ph.textContent = '從清單選…';
+  sel.appendChild(ph);
   for (const m of models) {
     const opt = document.createElement('option');
     opt.value = m;
-    dl.appendChild(opt);
+    opt.textContent = m;
+    sel.appendChild(opt);
   }
 }
 
@@ -365,7 +371,16 @@ function init() {
   $('edit-key').addEventListener('click', startEditKey);
   $('cancel-edit').addEventListener('click', resetKeyForm);
 
-  // Fetch the models this key can actually call (ListModels) into the datalist.
+  // Picking from the list fills the free-text model field, then resets so the
+  // placeholder shows again (and the same option can be re-picked later).
+  $('model-picker').addEventListener('change', (e) => {
+    if (e.target.value) {
+      $('new-key-model').value = e.target.value;
+      e.target.value = '';
+    }
+  });
+
+  // Fetch the models this key can actually call (ListModels) into the picker.
   // Uses the key being typed if present, else the active key.
   $('fetch-models').addEventListener('click', async () => {
     const key = $('new-key-value').value.trim() || getActiveKey();

@@ -166,7 +166,8 @@ select:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
 .add-key legend { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--sc-fg-mute); font-weight: 500; padding: 0 6px; }
 .add-key-actions { display: flex; gap: 8px; align-items: center; }
-.model-tools { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+.model-tools { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+#model-picker { font-size: 13px; padding: 6px 10px; max-width: 220px; }
 .model-tools a { color: var(--sc-forest); text-decoration: underline;
   text-underline-offset: 2px; font-size: 13px; }
 .model-note { font-size: 12px; margin-top: -2px; }
