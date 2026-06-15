@@ -18,16 +18,84 @@ const state = {
 };
 
 // Rebuild the active-key dropdown from storage and select the active entry.
+// Each option shows "name · model" so the active model is visible at a glance.
+// With no keys, the picker/actions disable and an empty-state hint appears.
 function refreshKeyDropdown() {
   const sel = document.getElementById('active-key');
+  const keys = loadKeys();
   sel.innerHTML = '';
-  for (const k of loadKeys()) {
+  for (const k of keys) {
     const opt = document.createElement('option');
     opt.value = k.name;
-    opt.textContent = k.name;
+    opt.textContent = k.model ? `${k.name} · ${k.model}` : k.name;
     sel.appendChild(opt);
   }
   sel.value = loadActiveKeyName();
+  const empty = keys.length === 0;
+  $('key-empty').classList.toggle('hidden', !empty);
+  sel.disabled = empty;
+  $('edit-key').disabled = empty;
+  $('delete-key').disabled = empty;
+}
+
+// ---- settings panel helpers ----
+function setSettingsOpen(open) {
+  $('settings-panel').classList.toggle('hidden', !open);
+  $('settings-toggle').setAttribute('aria-expanded', String(open));
+}
+
+// Inline status line inside the add/edit form (replaces alert/confirm).
+function showFormMsg(text, kind = 'info') {
+  const el = $('key-form-msg');
+  el.textContent = text;
+  el.className = `form-msg ${kind}`;
+}
+function clearFormMsg() {
+  $('key-form-msg').className = 'form-msg hidden';
+  $('key-form-msg').textContent = '';
+}
+
+// null = adding a new key; a name = editing that existing entry.
+let editingName = null;
+
+function resetKeyForm() {
+  editingName = null;
+  $('new-key-name').value = '';
+  $('new-key-name').removeAttribute('readonly');
+  $('new-key-value').value = '';
+  $('new-key-value').type = 'password';
+  $('toggle-key-visibility').textContent = '顯示';
+  $('toggle-key-visibility').setAttribute('aria-pressed', 'false');
+  $('new-key-model').value = DEFAULT_MODEL;
+  $('key-form-legend').textContent = '新增 API key';
+  $('add-key').textContent = '新增';
+  $('cancel-edit').classList.add('hidden');
+  clearFormMsg();
+}
+
+function startEditKey() {
+  const entry = getActiveKeyEntry();
+  if (!entry) return;
+  editingName = entry.name;
+  $('new-key-name').value = entry.name;
+  $('new-key-name').setAttribute('readonly', '');  // name is the entry's identity
+  $('new-key-value').value = entry.key;
+  $('new-key-model').value = entry.model || DEFAULT_MODEL;
+  $('key-form-legend').textContent = `編輯「${entry.name}」`;
+  $('add-key').textContent = '儲存變更';
+  $('cancel-edit').classList.remove('hidden');
+  clearFormMsg();
+  $('new-key-value').focus();
+}
+
+// Two-step delete confirmation, in place of a native confirm() dialog.
+let deleteArmed = false;
+let deleteTimer = null;
+function disarmDelete() {
+  deleteArmed = false;
+  clearTimeout(deleteTimer);
+  $('delete-key').textContent = '刪除';
+  $('delete-key').classList.remove('armed');
 }
 
 // The base prompt for a preset: the user's saved override if any, else default.
@@ -261,29 +329,64 @@ function init() {
   state.outputFormat = document.querySelector('input[name="fmt"]:checked')?.value || 'markdown';
   refreshKeyDropdown();
   $('new-key-model').value = DEFAULT_MODEL;
+  // First run with no key: open settings so the user knows where to start.
+  if (loadKeys().length === 0) setSettingsOpen(true);
 
   $('settings-toggle').addEventListener('click', () =>
-    $('settings-panel').classList.toggle('hidden'));
+    setSettingsOpen($('settings-panel').classList.contains('hidden')));
+  $('settings-close').addEventListener('click', () => setSettingsOpen(false));
 
-  $('active-key').addEventListener('change', (e) => setActiveKeyName(e.target.value));
+  $('active-key').addEventListener('change', (e) => {
+    setActiveKeyName(e.target.value);
+    disarmDelete();
+    if (editingName) resetKeyForm();
+  });
+
+  $('toggle-key-visibility').addEventListener('click', () => {
+    const inp = $('new-key-value');
+    const reveal = inp.type === 'password';
+    inp.type = reveal ? 'text' : 'password';
+    const btn = $('toggle-key-visibility');
+    btn.textContent = reveal ? '隱藏' : '顯示';
+    btn.setAttribute('aria-pressed', String(reveal));
+  });
+
+  $('edit-key').addEventListener('click', startEditKey);
+  $('cancel-edit').addEventListener('click', resetKeyForm);
 
   $('add-key').addEventListener('click', () => {
     const name = $('new-key-name').value.trim();
     const key = $('new-key-value').value.trim();
     const model = $('new-key-model').value.trim() || DEFAULT_MODEL;
-    if (!name || !key) { alert('請輸入名稱與 API key'); return; }
+    if (!name || !key) { showFormMsg('請輸入名稱與 API key', 'error'); return; }
+    // Adding (not editing) under an existing name would silently overwrite it.
+    if (!editingName && loadKeys().some((k) => k.name === name)) {
+      showFormMsg(`已有名為「${name}」的 key，請改名，或用「編輯」修改它`, 'error');
+      return;
+    }
+    const wasEdit = Boolean(editingName);
     saveKey({ name, key, model });
     setActiveKeyName(name);
-    $('new-key-name').value = '';
-    $('new-key-value').value = '';
     refreshKeyDropdown();
+    resetKeyForm();
+    showFormMsg(wasEdit ? '已儲存變更 ✓' : `已新增「${name}」✓`, 'success');
   });
+
   $('delete-key').addEventListener('click', () => {
     const name = $('active-key').value;
     if (!name) return;
-    if (!confirm(`刪除 API key「${name}」？`)) return;
+    if (!deleteArmed) {
+      deleteArmed = true;
+      $('delete-key').textContent = '確定刪除？';
+      $('delete-key').classList.add('armed');
+      deleteTimer = setTimeout(disarmDelete, 3000);
+      return;
+    }
+    disarmDelete();
     deleteKey(name);
+    if (editingName === name) resetKeyForm();
     refreshKeyDropdown();
+    showFormMsg(`已刪除「${name}」`, 'info');
   });
 
   $('preset-prompt').value = effectivePrompt(state.stylePreset);

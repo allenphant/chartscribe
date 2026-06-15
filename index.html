@@ -22,29 +22,55 @@
         <span class="tagline">圖表描述產生器</span>
       </div>
     </div>
-    <button id="settings-toggle" type="button">⚙ API key &amp; 模型設定</button>
+    <button id="settings-toggle" type="button" aria-expanded="false" aria-controls="settings-panel">⚙ API key &amp; 模型設定</button>
   </header>
 
-  <section id="settings-panel" class="panel hidden">
-    <label>目前使用的 API key
-      <select id="active-key"></select>
-    </label>
-    <button id="delete-key" type="button">刪除此 key</button>
+  <section id="settings-panel" class="panel hidden" role="region" aria-label="API key 與模型設定">
+    <div class="panel-head">
+      <h2 class="panel-title">API key &amp; 模型設定</h2>
+      <button id="settings-close" type="button">完成</button>
+    </div>
+
+    <div class="key-current">
+      <label>目前使用的 key
+        <select id="active-key"></select>
+      </label>
+      <div class="key-current-actions">
+        <button id="edit-key" type="button">編輯</button>
+        <button id="delete-key" type="button">刪除</button>
+      </div>
+    </div>
+    <p id="key-empty" class="hint empty-hint hidden">還沒有任何 API key，請在下方新增一組就能開始使用。</p>
+
     <fieldset class="add-key">
-      <legend>新增 API key</legend>
+      <legend id="key-form-legend">新增 API key</legend>
       <label>名稱
         <input id="new-key-name" type="text" placeholder="例如：個人帳號">
       </label>
-      <label>Gemini API key
-        <input id="new-key-value" type="password" placeholder="貼上你的 Gemini API key">
+      <label>API key
+        <span class="key-input">
+          <input id="new-key-value" type="password" placeholder="貼上你的 API key" autocomplete="off" spellcheck="false">
+          <button id="toggle-key-visibility" type="button" class="key-eye" aria-pressed="false" aria-label="顯示或隱藏 API key">顯示</button>
+        </span>
       </label>
       <label>模型
-        <input id="new-key-model" type="text" placeholder="gemini-3.1-flash-lite">
+        <input id="new-key-model" type="text" list="model-options" placeholder="gemini-3.1-flash-lite">
+        <datalist id="model-options">
+          <option value="gemini-3.1-flash-lite"></option>
+          <option value="gemini-3.1-flash"></option>
+          <option value="gemini-3.1-pro"></option>
+        </datalist>
       </label>
-      <button id="add-key" type="button">新增</button>
+      <div class="add-key-actions">
+        <button id="add-key" type="button">新增</button>
+        <button id="cancel-edit" type="button" class="hidden">取消</button>
+      </div>
+      <p id="key-form-msg" class="form-msg hidden" role="status" aria-live="polite"></p>
     </fieldset>
-    <p class="hint">API key 僅存於此瀏覽器的 localStorage，只會直接傳給 Google，不經任何中間伺服器。</p>
-    <p class="hint notice">建議模型：<b>gemini-3.1-flash-lite</b>。免費方案有頻率限制（每分鐘／每日上限），大量圖片可能需分批或改用付費方案。敏感資料請注意：免費方案下你的輸入可能被 Google 用於改進模型。</p>
+
+    <p class="hint">需要 key？到 <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> 免費申請。</p>
+    <p class="hint">API key 僅存於此瀏覽器的 localStorage，只會直接傳給服務商，不經任何中間伺服器。</p>
+    <p class="hint notice">建議模型：<b>gemini-3.1-flash-lite</b>。免費方案有頻率限制（每分鐘／每日上限），大量圖片可能需分批或改用付費方案。敏感資料請注意：免費方案下你的輸入可能被服務商用於改進模型。</p>
   </section>
 
   <section class="controls">

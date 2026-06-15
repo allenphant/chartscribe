@@ -119,24 +119,30 @@ button:focus-visible { outline: 2px solid var(--sc-forest); outline-offset: 2px;
 }
 #settings-toggle:hover, #combine:hover, #combine-copy:hover { background: rgba(62, 87, 75, 0.07); }
 
-/* delete = sparing brick accent outline */
+/* delete = sparing brick accent outline; arms to a filled state on first click */
 #delete-key {
-  align-self: flex-start;
   background: transparent; color: var(--sc-accent);
   border: 1px solid rgba(196, 78, 60, 0.5); border-radius: var(--radius-pill);
   padding: 8px 18px; font-size: 13px;
 }
 #delete-key:hover { background: rgba(196, 78, 60, 0.07); }
+#delete-key.armed {
+  background: var(--sc-accent); color: var(--sc-cream); border-color: var(--sc-accent);
+}
 
-/* small subtle pills: card actions, reset, file pick */
-.card .row button, .prompt-editor-actions button, #file-pick {
+/* small subtle pills: card actions, reset, file pick, edit/cancel/close */
+.card .row button, .prompt-editor-actions button, #file-pick,
+#edit-key, #cancel-edit, #settings-close {
   background: var(--sc-cream-2); color: var(--sc-fg-soft);
   border: 1px solid rgba(44, 42, 38, 0.08); border-radius: var(--radius-pill);
   padding: 6px 16px; font-size: 13px; font-weight: 500;
 }
-.card .row button:hover, .prompt-editor-actions button:hover, #file-pick:hover {
+.card .row button:hover, .prompt-editor-actions button:hover, #file-pick:hover,
+#edit-key:hover, #cancel-edit:hover, #settings-close:hover {
   background: var(--sc-stone); color: var(--sc-fg);
 }
+
+select:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ---- settings panel & add-key ---- */
 .panel {
@@ -146,6 +152,12 @@ button:focus-visible { outline: 2px solid var(--sc-forest); outline-offset: 2px;
   box-shadow: var(--shadow-soft);
   margin-block: 20px;
 }
+.panel-head { display: flex; justify-content: space-between; align-items: center; }
+.panel-title { margin: 0; font-size: 16px; color: var(--sc-fg); }
+
+.key-current { display: flex; flex-direction: column; gap: 10px; }
+.key-current-actions { display: flex; gap: 8px; }
+
 .add-key {
   border: 1px solid var(--sc-stone); border-radius: var(--radius-md);
   display: flex; flex-direction: column; gap: 12px; padding: 18px;
@@ -153,9 +165,32 @@ button:focus-visible { outline: 2px solid var(--sc-forest); outline-offset: 2px;
 }
 .add-key legend { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--sc-fg-mute); font-weight: 500; padding: 0 6px; }
+.add-key-actions { display: flex; gap: 8px; align-items: center; }
+
+/* key field with an inline show/hide toggle */
+.key-input { display: flex; gap: 8px; align-items: stretch; }
+.key-input input { flex: 1; min-width: 0; }
+.key-eye {
+  flex: none; background: var(--sc-cream-2); color: var(--sc-fg-soft);
+  border: 1px solid var(--sc-stone); border-radius: var(--radius-sm);
+  padding: 0 14px; font-size: 13px; font-weight: 500;
+}
+.key-eye:hover { background: var(--sc-stone); color: var(--sc-fg); }
+
+/* inline form status line (success / error / info) */
+.form-msg { margin: 0; padding: 8px 12px; border-radius: var(--radius-sm); font-size: 13px; }
+.form-msg.success { color: var(--sc-forest); background: rgba(62, 87, 75, 0.09); }
+.form-msg.error { color: var(--sc-accent); background: rgba(196, 78, 60, 0.09); }
+.form-msg.info { color: var(--sc-fg-soft); background: var(--sc-cream-2); }
 
 /* ---- hints / notice ---- */
 .hint { font-size: 12.5px; color: var(--sc-fg-mute); margin: 0; line-height: 1.6; }
+.hint a { color: var(--sc-forest); text-decoration: underline; text-underline-offset: 2px; }
+.empty-hint {
+  color: var(--sc-fg-soft); background: var(--sc-cream-2);
+  border-left: 3px solid var(--sc-wood-dark);
+  border-radius: var(--radius-sm); padding: 10px 13px; font-size: 13px;
+}
 .hint.notice {
   background: var(--sc-cream-2);
   border: 1px solid var(--sc-wood);
