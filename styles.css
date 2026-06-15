@@ -132,13 +132,13 @@ button:focus-visible { outline: 2px solid var(--sc-forest); outline-offset: 2px;
 
 /* small subtle pills: card actions, reset, file pick, edit/cancel/close */
 .card .row button, .prompt-editor-actions button, #file-pick,
-#edit-key, #cancel-edit, #settings-close {
+#edit-key, #cancel-edit, #settings-close, #fetch-models {
   background: var(--sc-cream-2); color: var(--sc-fg-soft);
   border: 1px solid rgba(44, 42, 38, 0.08); border-radius: var(--radius-pill);
   padding: 6px 16px; font-size: 13px; font-weight: 500;
 }
 .card .row button:hover, .prompt-editor-actions button:hover, #file-pick:hover,
-#edit-key:hover, #cancel-edit:hover, #settings-close:hover {
+#edit-key:hover, #cancel-edit:hover, #settings-close:hover, #fetch-models:hover {
   background: var(--sc-stone); color: var(--sc-fg);
 }
 
@@ -166,6 +166,10 @@ select:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
 .add-key legend { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--sc-fg-mute); font-weight: 500; padding: 0 6px; }
 .add-key-actions { display: flex; gap: 8px; align-items: center; }
+.model-tools { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin-top: -4px; }
+.model-tools a { color: var(--sc-forest); text-decoration: underline;
+  text-underline-offset: 2px; font-size: 13px; }
+.model-note { font-size: 12px; margin-top: -2px; }
 
 /* key field with an inline show/hide toggle */
 .key-input { display: flex; gap: 8px; align-items: stretch; }

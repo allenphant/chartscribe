@@ -18,6 +18,29 @@ export function buildGeminiBody(systemPrompt, base64Data, mimeType) {
   };
 }
 
+// List the models this key can call, filtered to those that support
+// generateContent. Returns bare model ids (no "models/" prefix), sorted.
+// Throws ApiError on network failure (-1) or HTTP error (status = HTTP code).
+export async function listModels(apiKey) {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models?pageSize=1000&key=${encodeURIComponent(apiKey)}`;
+  let res;
+  try {
+    res = await fetch(url);
+  } catch (err) {
+    throw new ApiError(-1, `網路錯誤：${err.message}`);
+  }
+  if (!res.ok) {
+    const detail = await res.text().catch(() => '');
+    throw new ApiError(res.status, detail || `HTTP ${res.status}`);
+  }
+  const json = await res.json();
+  return (json?.models || [])
+    .filter((m) => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map((m) => String(m.name || '').replace(/^models\//, ''))
+    .filter(Boolean)
+    .sort();
+}
+
 // Call Gemini. Throws ApiError on network failure (status -1), HTTP error
 // (status = HTTP code), or empty response (status 0).
 export async function generateDescription({ apiKey, model, systemPrompt, base64Data, mimeType }) {

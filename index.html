@@ -61,6 +61,11 @@
           <option value="gemini-3.1-pro"></option>
         </datalist>
       </label>
+      <div class="model-tools">
+        <button id="fetch-models" type="button">抓取可用模型</button>
+        <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener">查看官方清單 ↗</a>
+      </div>
+      <p class="hint model-note">「抓取可用模型」會用上方的 key 列出你帳號可呼叫的模型；需支援圖片輸入，純文字模型選了會在產生時失敗。</p>
       <div class="add-key-actions">
         <button id="add-key" type="button">新增</button>
         <button id="cancel-edit" type="button" class="hidden">取消</button>

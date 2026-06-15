@@ -1,11 +1,11 @@
 import {
   DEFAULT_MODEL,
   loadPromptOverrides, savePromptOverride, clearPromptOverride,
-  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry,
+  loadKeys, saveKey, deleteKey, loadActiveKeyName, setActiveKeyName, getActiveKeyEntry, getActiveKey,
 } from './storage.js';
 import { PRESETS, defaultPrompt, buildSystemPrompt } from './presets.js';
 import { EXAMPLES } from './examples.js';
-import { generateDescription, ApiError } from './gemini.js';
+import { generateDescription, listModels, ApiError } from './gemini.js';
 import { mdToPlain, mdToLatex } from './formats.js';
 import { createCardElement, setCardStatus, renderCardOutput } from './ui.js';
 
@@ -53,6 +53,17 @@ function showFormMsg(text, kind = 'info') {
 function clearFormMsg() {
   $('key-form-msg').className = 'form-msg hidden';
   $('key-form-msg').textContent = '';
+}
+
+// Replace the model field's datalist suggestions with a fetched list.
+function setModelOptions(models) {
+  const dl = $('model-options');
+  dl.innerHTML = '';
+  for (const m of models) {
+    const opt = document.createElement('option');
+    opt.value = m;
+    dl.appendChild(opt);
+  }
 }
 
 // null = adding a new key; a name = editing that existing entry.
@@ -353,6 +364,33 @@ function init() {
 
   $('edit-key').addEventListener('click', startEditKey);
   $('cancel-edit').addEventListener('click', resetKeyForm);
+
+  // Fetch the models this key can actually call (ListModels) into the datalist.
+  // Uses the key being typed if present, else the active key.
+  $('fetch-models').addEventListener('click', async () => {
+    const key = $('new-key-value').value.trim() || getActiveKey();
+    if (!key) { showFormMsg('請先輸入或選擇一把 API key 再抓取', 'error'); return; }
+    const btn = $('fetch-models');
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '抓取中…';
+    showFormMsg('正在抓取可用模型…', 'info');
+    try {
+      const models = await listModels(key);
+      setModelOptions(models);
+      if (models.length) {
+        showFormMsg(`已抓到 ${models.length} 個可呼叫模型，點模型欄即可選（純文字模型會在產生時失敗）`, 'success');
+      } else {
+        showFormMsg('這把 key 沒有可用的 generateContent 模型', 'error');
+      }
+    } catch (err) {
+      const msg = err instanceof ApiError ? `${err.status} ${err.message}` : String(err);
+      showFormMsg(`抓取失敗：${msg}`, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
 
   $('add-key').addEventListener('click', () => {
     const name = $('new-key-name').value.trim();
