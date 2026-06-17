@@ -11,3 +11,5 @@ Thumbs.db
 
 # Claude Code 本機設定
 .claude/
+
+.superpowers/
