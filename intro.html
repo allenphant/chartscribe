@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChartScribe — 把圖表轉成客觀描述文字</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --sc-cream: #f5f0e6;
+      --sc-cream-2: #ece5d4;
+      --sc-card: #fdfbf5;
+      --sc-wood: #c89e69;
+      --sc-wood-dark: #9c764a;
+      --sc-fg: #2c2a26;
+      --sc-fg-soft: #5a564d;
+      --sc-fg-mute: #8a8478;
+      --sc-stone: #cfc8b9;
+      --sc-forest: #3e574b;
+      --sc-deep: #1f3b4d;
+      --sc-accent: #c44e3c;
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 28px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 2px 8px rgba(44, 42, 38, 0.05), 0 8px 32px rgba(44, 42, 38, 0.06);
+      --font-display: 'Inter', 'Noto Sans TC', 'PingFang TC', 'Helvetica Neue', system-ui, sans-serif;
+      --font-body: 'Inter', 'Noto Sans TC', 'PingFang TC', system-ui, sans-serif;
+      --maxw: 1080px;
+      --pad-x: clamp(20px, 5vw, 44px);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-weight: 400;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--sc-fg);
+      background-color: var(--sc-cream);
+      background-image: repeating-linear-gradient(
+        90deg,
+        rgba(200, 158, 105, 0.035) 0px,
+        rgba(200, 158, 105, 0.035) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+    }
+
+    h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+    p { margin: 0; }
+    a { color: var(--sc-forest); }
+
+    .wrap { max-width: var(--maxw); margin-inline: auto; padding-inline: var(--pad-x); }
+    section { padding-block: clamp(56px, 9vw, 96px); }
+
+    .label { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sc-fg-mute); font-weight: 500; }
+
+    /* ---- buttons ---- */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font: inherit; font-weight: 500; font-size: 15px; letter-spacing: 0.04em;
+      cursor: pointer; text-decoration: none; border-radius: var(--radius-pill);
+      transition: filter 0.15s, background 0.15s, transform 0.15s;
+    }
+    .btn-primary {
+      background: var(--sc-forest); color: var(--sc-cream);
+      border: none; padding: 14px 30px; box-shadow: var(--shadow-soft);
+    }
+    .btn-primary:hover { filter: brightness(1.12); transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--sc-forest);
+      border: 1px solid var(--sc-forest); padding: 13px 26px;
+    }
+    .btn-ghost:hover { background: rgba(62, 87, 75, 0.07); }
+
+    /* ---- hero ---- */
+    .hero { padding-top: clamp(64px, 10vw, 110px); text-align: center; }
+    .brand { display: inline-flex; align-items: center; gap: 12px; margin-bottom: 26px; }
+    .leaf { width: 40px; height: 40px; }
+    .brand-name { font-family: var(--font-display); font-weight: 600; font-size: 26px; }
+    .hero h1 { font-size: clamp(30px, 5.2vw, 50px); line-height: 1.18; max-width: 18ch; margin-inline: auto; }
+    .hero .sub { margin: 20px auto 0; max-width: 46ch; color: var(--sc-fg-soft); font-size: 17px; }
+    .hero .cta-row { margin-top: 34px; display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .hero .tags { margin-top: 26px; color: var(--sc-fg-mute); font-size: 13px; }
+    .hero .tags span { white-space: nowrap; }
+
+    /* ---- generic section heading ---- */
+    .sec-head { max-width: 56ch; }
+    .sec-head h2 { font-size: clamp(24px, 3.6vw, 34px); margin-top: 10px; }
+    .sec-head .lead { margin-top: 14px; color: var(--sc-fg-soft); font-size: 16.5px; }
+
+    /* ---- steps ---- */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 38px; }
+    .step {
+      background: var(--sc-card); border: 1px solid rgba(44, 42, 38, 0.06);
+      border-radius: var(--radius-md); padding: 24px; box-shadow: var(--shadow-soft);
+    }
+    .step .num {
+      width: 34px; height: 34px; border-radius: var(--radius-pill);
+      background: var(--sc-forest); color: var(--sc-cream);
+      display: grid; place-items: center; font-weight: 600; font-size: 15px; margin-bottom: 14px;
+    }
+    .step h3 { font-size: 17px; }
+    .step p { margin-top: 6px; color: var(--sc-fg-soft); font-size: 14.5px; }
+
+    /* ---- gallery (before/after) ---- */
+    .gallery { background: var(--sc-cream-2); }
+    .ex { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; align-items: center; margin-top: 28px; }
+    .ex + .ex { margin-top: 22px; }
+    .ex-figure {
+      background: var(--sc-card); border: 1px solid var(--sc-stone);
+      border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-soft);
+    }
+    .ex-figure img { display: block; width: 100%; height: auto; border-radius: var(--radius-sm); }
+    .ex-figure .ex-type { font-size: 12px; color: var(--sc-fg-mute); margin-bottom: 10px;
+      letter-spacing: 0.04em; }
+    .ex-out {
+      background: var(--sc-card); border: 1px solid rgba(44, 42, 38, 0.06);
+      border-left: 3px solid var(--sc-forest);
+      border-radius: var(--radius-md); padding: 20px 22px; box-shadow: var(--shadow-soft);
+    }
+    .ex-out .ex-out-label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--sc-fg-mute); font-weight: 500; margin-bottom: 8px; }
+    .ex-out p { font-size: 14.5px; color: var(--sc-fg); line-height: 1.85; }
+    .ex-arrow { text-align: center; color: var(--sc-wood-dark); font-size: 13px; margin: 4px 0 -10px; }
+
+    /* ---- features ---- */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 38px; }
+    .feature {
+      background: var(--sc-card); border: 1px solid rgba(44, 42, 38, 0.06);
+      border-radius: var(--radius-md); padding: 20px 22px; box-shadow: var(--shadow-soft);
+    }
+    .feature h3 { font-size: 16px; }
+    .feature p { margin-top: 6px; color: var(--sc-fg-soft); font-size: 14px; }
+    .feature .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+      background: var(--sc-wood); margin-right: 8px; vertical-align: middle; }
+
+    /* ---- presets ---- */
+    .presets { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 26px; }
+    .preset-chip {
+      background: var(--sc-card); border: 1px solid var(--sc-stone);
+      border-radius: var(--radius-pill); padding: 9px 18px; font-size: 14px; color: var(--sc-fg-soft);
+    }
+
+    /* ---- CTA / footer ---- */
+    .cta { text-align: center; }
+    .cta h2 { font-size: clamp(24px, 3.6vw, 34px); }
+    .cta p { margin: 14px auto 0; max-width: 44ch; color: var(--sc-fg-soft); }
+    .cta .btn { margin-top: 28px; }
+    footer { border-top: 1px solid var(--sc-stone); }
+    footer .wrap { padding-block: 28px; display: flex; justify-content: space-between;
+      align-items: center; gap: 14px; flex-wrap: wrap; color: var(--sc-fg-mute); font-size: 13px; }
+
+    /* ---- scroll reveal ---- */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ---- responsive ---- */
+    @media (max-width: 760px) {
+      .steps, .features { grid-template-columns: 1fr; }
+      .ex { grid-template-columns: 1fr; gap: 10px; }
+      .ex-arrow { margin: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .reveal { opacity: 1; transform: none; transition: none; }
+      .btn:hover { transform: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Hero -->
+  <header class="hero wrap">
+    <div class="brand">
+      <svg viewBox="0 0 40 40" class="leaf" aria-hidden="true">
+        <path d="M20 4 C 28 8, 32 16, 30 28 C 24 26, 16 22, 12 14 C 14 8, 18 4, 20 4 Z"
+              fill="var(--sc-forest)" opacity="0.45"/>
+        <path d="M20 4 L 20 32" stroke="var(--sc-forest)" stroke-width="0.8" opacity="0.6"/>
+      </svg>
+      <span class="brand-name">ChartScribe</span>
+    </div>
+    <h1>把圖表圖片，轉成貼合原文風格的客觀描述文字</h1>
+    <p class="sub">看年報、論文裡的圖表，逐張手寫描述又費時又難保持客觀一致。ChartScribe 用視覺模型替你產出純文字／Markdown／LaTeX，只描述數據、不加詮釋。</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="index.html">開始使用 →</a>
+      <a class="btn btn-ghost" href="#examples">看實際範例 ↓</a>
+    </div>
+    <p class="tags"><span>純前端零安裝</span> ・ <span>自帶 API key</span> ・ <span>資料只在你的瀏覽器</span></p>
+  </header>
+
+  <!-- 2. 為什麼 -->
+  <section class="wrap reveal">
+    <div class="sec-head">
+      <span class="label">為什麼需要它</span>
+      <h2>圖表描述，不該是重複又容易走鐘的苦工</h2>
+      <p class="lead">監視年報、研究報告裡動輒數十張圖表，人工逐張描述既耗時、用詞又容易前後不一或不小心加入主觀判讀。ChartScribe 把這段標準化：固定的客觀寫作守則、可重複套用的風格，讓每張圖的描述風格一致。</p>
+    </div>
+  </section>
+
+  <!-- 3. 怎麼運作 -->
+  <section class="wrap reveal">
+    <div class="sec-head">
+      <span class="label">怎麼運作</span>
+      <h2>三步，從圖片到可貼上的描述</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>貼上圖表圖片</h3>
+        <p>拖拉、Ctrl+V 貼上或選檔，可一次多張批次處理。</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>選風格預設</h3>
+        <p>挑一個風格預設；每個預設的 system prompt 都能展開檢視與編輯。</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>取得三種格式</h3>
+        <p>產出純文字／Markdown／LaTeX，可複製、下載或整批合併。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 實際範例 Gallery -->
+  <section id="examples" class="gallery">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="label">實際範例</span>
+        <h2>真實圖表 → 真實產出</h2>
+        <p class="lead">以下為臺灣抗生素抗藥性監視年報（AMR）四種圖表類型的實際範例：左為輸入圖表，右為 ChartScribe 產出的客觀描述。</p>
+      </div>
+
+      <div class="ex reveal">
+        <div class="ex-figure">
+          <div class="ex-type">敏感性圖譜（susceptibility）</div>
+          <img src="assets/examples/amr_susceptibility.png" alt="抗藥性敏感性圖譜範例">
+        </div>
+        <div class="ex-out">
+          <div class="ex-out-label">產出描述</div>
+          <p>本圖為 Aerobic Gram Negative–Non Enterobacterales 敏感性圖譜。A. baumannii 對 aminoglycoside 類（GM 42%、AN 46%）、fluoroquinolone 類（CIP 37%、LVX 39%）與 carbapenem 類（IPM／MEM 39%）敏感性均偏低，僅 tigecycline 達 77%；P. aeruginosa 對 carbapenem 類達 87% 以上、amikacin 97%。</p>
+        </div>
+      </div>
+
+      <div class="ex reveal">
+        <div class="ex-figure">
+          <div class="ex-type">抗藥率橫條圖（resistance bar）</div>
+          <img src="assets/examples/amr_resistance_bar.png" alt="抗藥率橫條圖範例">
+        </div>
+        <div class="ex-out">
+          <div class="ex-out-label">產出描述</div>
+          <p>本圖為某菌種之抗藥性百分比橫條圖（全部檢體，CO+HO）。對 ampicillin 抗藥性最高（約 75%），fluoroquinolone 類（ciprofloxacin、levofloxacin）與 co-trimoxazole 約 45%，第三代 cephalosporin 類約 30%；carbapenem 類最低，均低於 5%。</p>
+        </div>
+      </div>
+
+      <div class="ex reveal">
+        <div class="ex-figure">
+          <div class="ex-type">組成堆疊圖（composition）</div>
+          <img src="assets/examples/amr_composition.png" alt="菌種組成堆疊圖範例">
+        </div>
+        <div class="ex-out">
+          <div class="ex-out-label">產出描述</div>
+          <p>本圖為 108–113 年醫療相關感染（HO）各菌種占當年度菌株數之比率（100% 堆疊）。前三名 K. pneumoniae、E. coli、P. aeruginosa 占比相近（各約 16–17%），6 年間大致持平；其後依序為 Enterococcus faecium、S. aureus、A. baumannii 等。</p>
+        </div>
+      </div>
+
+      <div class="ex reveal">
+        <div class="ex-figure">
+          <div class="ex-type">趨勢折線圖（trend）</div>
+          <img src="assets/examples/amr_trend.png" alt="抗藥性趨勢折線圖範例">
+        </div>
+        <div class="ex-out">
+          <div class="ex-out-label">產出描述</div>
+          <p>本圖為 108–113 年 VR Enterococcus faecalis 抗藥性百分比趨勢，含醫學中心／區域／地區／全國四條線。整體多在 5% 以下，以地區醫院最高（109 年約 5.5% 後回落至 3–4%），醫學中心最低（約 0.5% 以下）。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 特色 -->
+  <section class="wrap reveal">
+    <div class="sec-head">
+      <span class="label">特色</span>
+      <h2>為重複、要求一致的圖表描述而生</h2>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <h3><span class="dot"></span>客觀寫作守則</h3>
+        <p>只描述圖表呈現的數據，不加臨床判讀；專有名詞保留英文。</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>可編輯的風格預設</h3>
+        <p>每個預設都附完整 system prompt，可即時編輯並存於本機、隨時還原。</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>三格式輸出</h3>
+        <p>同一份結果可輸出純文字、Markdown、LaTeX，確定性轉換、彼此一致。</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>批次處理</h3>
+        <p>一次貼多張圖，逐張產生、可整批合併複製或下載。</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>多組命名 API key</h3>
+        <p>可儲存多把命名 key、各自帶模型，隨時切換；還能抓取你帳號可用的模型。</p>
+      </div>
+      <div class="feature">
+        <h3><span class="dot"></span>純前端零安裝</h3>
+        <p>打開網址即用，key 只存於你的瀏覽器 localStorage，不經任何中間伺服器。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 風格預設 -->
+  <section class="wrap reveal">
+    <div class="sec-head">
+      <span class="label">內建風格預設</span>
+      <h2>對應常見的圖表類型</h2>
+      <p class="lead">內建五種預設，涵蓋 AMR 年報的主要圖表類型，也可自行調整 prompt 套用到其他領域。</p>
+    </div>
+    <div class="presets">
+      <span class="preset-chip">敏感性圖譜</span>
+      <span class="preset-chip">抗藥率橫條</span>
+      <span class="preset-chip">組成堆疊</span>
+      <span class="preset-chip">趨勢折線</span>
+      <span class="preset-chip">通用</span>
+    </div>
+  </section>
+
+  <!-- 7. CTA -->
+  <section class="wrap cta reveal">
+    <h2>準備好了嗎？貼上你的第一張圖表</h2>
+    <p>自帶你的 API key、零安裝，資料只在你的瀏覽器裡處理。</p>
+    <a class="btn btn-primary" href="index.html">開始使用 →</a>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      <span>ChartScribe — 圖表描述產生器</span>
+      <a href="https://github.com/allenphant/chartscribe" target="_blank" rel="noopener">GitHub ↗</a>
+    </div>
+  </footer>
+
+  <script>
+    // 捲動進場淡入。尊重 prefers-reduced-motion：關閉動畫時直接全部顯示。
+    const reveals = document.querySelectorAll('.reveal');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) {
+      reveals.forEach((el) => el.classList.add('in'));
+    } else {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        }
+      }, { rootMargin: '0px 0px -10% 0px', threshold: 0.1 });
+      reveals.forEach((el) => io.observe(el));
+    }
+  </script>
+</body>
+</html>
