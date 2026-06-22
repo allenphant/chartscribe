@@ -20,7 +20,7 @@ const FRAGMENTS = {
   amr_susceptibility: {
     name: 'AMR－敏感性圖譜',
     objective: true,
-    fragment: '這是一張抗生素敏感性圖譜（矩陣表格，格內為敏感率 % susceptible 與檢測菌株數）。請逐抗生素類別描述各菌種之敏感率數值。',
+    fragment: '這是一張抗生素敏感性圖譜（矩陣表格，格內為敏感率 % susceptible 與檢測菌株數）。請以每種菌種各自獨立成一段的方式描述，逐段說明該菌種對各抗生素類別的敏感率數值。請以連續段落散文書寫，不要使用任何條列（bullet list）或項目符號。',
   },
   amr_resistance_bar: {
     name: 'AMR－抗藥性百分比橫條圖',

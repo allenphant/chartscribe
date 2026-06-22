@@ -2,6 +2,10 @@
 
 純前端工具：把圖表圖片轉成客觀描述文字（純文字 / Markdown / LaTeX），透過 Google Gemini Vision API。內建臺灣抗生素抗藥性監視年報風格預設。
 
+## 線上 Demo
+- **介紹頁**：<https://allenphant.github.io/chartscribe/intro.html>
+- **應用程式本體**：<https://allenphant.github.io/chartscribe/>
+
 ## 功能
 - 拖拉 / 點選 / Ctrl+V 貼上，批次多圖。
 - 風格預設可**檢視並編輯其完整 system prompt**（每個預設各自儲存，可還原預設）。
